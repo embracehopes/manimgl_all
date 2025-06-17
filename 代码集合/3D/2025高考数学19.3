@@ -1,0 +1,430 @@
+from manimlib import *
+import numpy as np
+from scipy.optimize import fsolve
+
+class ImprovedWaves(Scene):
+    def construct(self):      
+        # 设置更好的3D视角
+        self.camera.frame.set_euler_angles(
+            theta=81.08 * DEGREES,
+            phi=77.95 * DEGREES,
+            gamma=0 * DEGREES
+        )
+        self.camera.frame.set_height(5.75)        # 3D坐标系
+        axes = ThreeDAxes(
+            x_range=(-5, 5, 1),
+            y_range=(-5, 5, 1),
+            z_range=(-6, 6, 1),
+            height=6,
+            width=6,
+            depth=6,
+            axis_config={"include_ticks": False, }
+        )
+          # xy地面加方格效果
+        # 创建网格地面
+        
+        
+        # 添加平行于x轴的线条（沿y方向）
+        for y in np.arange(-5, 5.1, 0.5):  # 每0.5单位一条线
+            line = Line3D(
+                start=axes.c2p(-5, y, 0),
+                end=axes.c2p(5, y, 0),
+                color=GREY,
+                
+                opacity=0.3
+            )
+            self.add(line)
+        
+        # 添加平行于y轴的线条（沿x方向）
+        for x in np.arange(-5, 5.1, 0.5):  # 每0.5单位一条线
+            line = Line3D(
+                start=axes.c2p(x, -5, 0),
+                end=axes.c2p(x, 5, 0),
+                color=GREY,
+                
+                opacity=0.3
+            )
+            self.add(line)
+        ##创建垂直xy地面的，且y=5，z^2+x^2=25的圆,里面均匀分布平行Z轴等距的十条线条
+        # 1. 首先创建圆的轮廓（让圆形更明显）
+        circle_points = []
+        num_points = 100
+        for i in range(num_points + 1):
+            theta = 2 * np.pi * i / num_points
+            x = 5 * np.cos(theta)  # 半径为根号5
+            z = 5 * np.sin(theta)
+            y = 5  # 固定在y=5平面
+            circle_points.append(axes.c2p(x, y, z))
+
+        # 创建圆形轮廓
+        circle_outline = VMobject()
+        circle_outline.set_points_as_corners(circle_points)
+        circle_outline.set_stroke(color=GREY, width=3, opacity=0.3)
+        self.add(circle_outline)
+
+        # 2. 在圆内创建平行于Z轴的等距线条（10条）
+        x_positions = np.linspace(-4, 4, 10)  # 10条等距线条
+
+        for x in x_positions:
+            if x**2 <= 25:  # 确保x在圆的范围内
+                # 计算该x位置下圆的z范围：z = ±√(25-x²)
+                z_max = np.sqrt(25 - x**2)
+                z_min = -z_max
+                
+                # 创建平行于Z轴的线条（在y=5平面内）
+                line = Line3D(
+                    start=axes.c2p(x, 5, z_min),
+                    end=axes.c2p(x, 5, z_max),
+                    color=GREY,
+                    
+                    opacity=0.3
+                )
+                self.add(line)
+
+
+        
+
+        
+
+        self.camera.frame.move_to((-1.29, -0.51, 0.76))
+
+        self.camera.frame.save_state()  # 保存初始相机状态
+        # 画一条z=3*sqrt(3),x=0的直线
+        line = Line(
+            start=axes.c2p(0, -5, 3*np.sqrt(3)),
+            end=axes.c2p(0, 5, 3*np.sqrt(3)),
+            color=WHITE,
+            stroke_width=4
+        )
+        axes.add(line)
+        
+        # 添加直线标签
+        line_label = TexText(r"$z = 3\sqrt{3}$", font_size=48)
+        line_label.set_color(WHITE)
+        line_label.fix_in_frame()
+        line_label.to_corner(UR)
+        self.add(line_label)
+
+        dt = ValueTracker(value=0)
+        
+        # ParametricCurve: 参数方程定义
+        curve1 = ParametricCurve(
+            lambda t: axes.c2p(0, t, 5*np.cos(t)),
+            t_range=[-5, 5, 0.1]
+        )
+        curve2 = ParametricCurve(
+            lambda t: axes.c2p(0, t, -np.cos(5*t+dt.get_value())),
+            t_range=[-5, 5, 0.1]
+        )
+        curve3 = ParametricCurve(
+            lambda t: axes.c2p(0, t, 5*np.cos(t) - np.cos(5*t + dt.get_value())),
+            t_range=[-5, 5, 0.1]
+        )
+        
+        # 设置曲线颜色
+        curve1.set_stroke(color=BLUE, width=4)
+        curve2.set_stroke(color=RED, width=4)
+        curve3.set_stroke(color=GREEN, width=4)
+        
+        # 添加更新器
+        curve2.add_updater(lambda m: m.become(
+            ParametricCurve(
+                lambda t: axes.c2p(0, t, -np.cos(5*t+dt.get_value())),
+                t_range=[-5, 5, 0.1],
+                color=RED,
+                stroke_width=4
+            )
+        ))
+        curve3.add_updater(lambda m: m.become(
+            ParametricCurve(
+                lambda t: axes.c2p(0, t, 5*np.cos(t) - np.cos(5*t + dt.get_value())),
+                t_range=[-5, 5, 0.1],
+                color=GREEN,
+                stroke_width=4
+            )
+        ))
+        
+        # 添加标签
+        label1 = TexText(r"$z_1 = 5\cos(y)$", font_size=48)
+        label1.set_color(BLUE)
+        label1.fix_in_frame()
+        label1.to_corner(UL)
+
+        label2 = TexText(r"$z_2 = -\cos(5y + \delta t)$", font_size=48)
+        label2.set_color(RED)
+        label2.fix_in_frame()
+        label2.next_to(label1, DOWN, aligned_edge=LEFT)
+
+        label3 = TexText(r"$z_3 = 5\cos(y) - \cos(5y + \delta t)$", font_size=48)
+        label3.set_color(GREEN)
+        label3.fix_in_frame()
+        label3.next_to(label2, DOWN, aligned_edge=LEFT)
+        
+        self.add(label1, label2, label3)
+
+        # 显示t值的标签
+        t_value_label = DecimalNumber(
+            dt.get_value(), 
+            num_decimal_places=2,
+            font_size=48
+        )
+        t_value_label.set_color(YELLOW)
+        t_value_label.fix_in_frame()
+        t_value_label.add_updater(lambda m: m.set_value(dt.get_value()))
+        
+        # 添加t的说明文字
+        t_label = TexText(r"$\delta t = $", font_size=48)
+        t_label.set_color(YELLOW)
+        t_label.fix_in_frame()
+        t_label.next_to(t_value_label, LEFT)
+        
+        t_group = VGroup(t_label, t_value_label)
+        t_group.next_to(label3, DOWN, aligned_edge=LEFT)        # 计算交点的函数（改进版本）
+        def find_intersections(delta_t):
+            """
+            找到直线 z = 3*sqrt(3) 和曲线 z3 = 5*cos(y) - cos(5*y + delta_t) 的交点
+            即求解方程: 5*cos(y) - cos(5*y + delta_t) = 3*sqrt(3)
+            """
+            target_z = 3 * np.sqrt(3)  # ≈ 5.196
+            intersections = []
+            
+            # 定义要求解的方程
+            def equation(y):
+                return 5 * np.cos(y) - np.cos(5 * y + delta_t) - target_z
+            
+            # 定义方程的导数
+            def equation_derivative(y):
+                return -5 * np.sin(y) + 5 * np.sin(5 * y + delta_t)
+            
+            # 使用更细密的网格搜索（提高分辨率）
+            y_dense = np.linspace(-5, 5, 500)  # 增加到500个点
+            eq_vals = np.array([equation(y) for y in y_dense])
+            
+            # 找到符号变化点
+            sign_changes = []
+            for i in range(len(eq_vals) - 1):
+                if eq_vals[i] * eq_vals[i + 1] < 0:
+                    # 使用线性插值得到更好的初始猜测
+                    y1, y2 = y_dense[i], y_dense[i + 1]
+                    f1, f2 = eq_vals[i], eq_vals[i + 1]
+                    y_interpolated = y1 - f1 * (y2 - y1) / (f2 - f1)
+                    sign_changes.append(y_interpolated)
+            
+            # 额外的多重初始猜测策略
+            # 添加一些基于函数特征的额外猜测点
+            extra_guesses = []
+            
+            # 基于cos函数的周期性，在关键点附近搜索
+            critical_points = [0, np.pi/3, 2*np.pi/3, np.pi, 4*np.pi/3, 5*np.pi/3, 2*np.pi]
+            for cp in critical_points:
+                if -5 <= cp <= 5:
+                    extra_guesses.append(cp)
+                if -5 <= -cp <= 5:
+                    extra_guesses.append(-cp)
+            
+            # 合并所有初始猜测
+            all_guesses = sign_changes + extra_guesses
+            
+            # 精确求解每个根
+            for initial_guess in all_guesses:
+                try:
+                    # 使用更宽松但实用的参数
+                    with np.errstate(all='ignore'):  # 忽略数值警告
+                        y_solution = fsolve(
+                            equation, 
+                            initial_guess,
+                            fprime=equation_derivative,
+                            xtol=1e-10,  # 更高精度
+                            maxfev=500   # 更多迭代次数
+                        )[0]
+                    
+                    # 验证解的有效性
+                    if (-5 <= y_solution <= 5 and 
+                        abs(equation(y_solution)) < 1e-8):  # 更严格的精度要求
+                        
+                        # 检查是否为新解（更小的容差）
+                        is_new = True
+                        for existing_y, _ in intersections:
+                            if abs(y_solution - existing_y) < 1e-4:  # 更小的重复判断容差
+                                is_new = False
+                                break
+                        
+                        if is_new:
+                            intersections.append((y_solution, target_z))
+                
+                except (RuntimeError, ValueError):
+                    # 静默处理收敛失败
+                    continue
+            
+            # 排序交点以便稳定显示
+            intersections.sort(key=lambda x: x[0])
+            return intersections# 创建交点的点对象
+        intersection_dots = []  # 改为普通列表而不是VGroup
+        
+        def update_intersections():
+            """更新交点位置"""
+            nonlocal intersection_dots
+            
+            # 移除旧的交点
+            for dot in intersection_dots:
+                self.remove(dot)
+            intersection_dots.clear()
+            
+            # 计算新的交点
+            current_dt = dt.get_value()
+            intersections = find_intersections(current_dt)
+            
+            # 创建新的交点
+            for y_coord, z_coord in intersections:
+                point_pos = axes.c2p(0, y_coord, z_coord)
+                
+                # 使用GlowDot创建发光效果的交点
+                glow_dot = GlowDot(
+                    center=point_pos,
+                    radius=0.05,  # 更小的半径
+                    color=ORANGE,
+                    glow_factor=5.0,  # 更强的发光效果
+  
+                )
+                
+                intersection_dots.append(glow_dot)
+                self.add(glow_dot)
+        
+        # 添加交点更新器
+        def intersection_updater(mob):
+            update_intersections()
+        
+        # 创建一个虚拟对象来触发交点更新
+        intersection_tracker = VMobject()
+        intersection_tracker.add_updater(intersection_updater)
+        
+        # 添加交点数量标签
+
+        
+        # 更新交点数量的函数
+        def update_intersection_count(mob):
+            current_dt = dt.get_value()
+            intersections = find_intersections(current_dt)
+            mob.set_value(len(intersections))        # 添加所有元素到场景
+        self.add(axes)
+
+        self.add(t_label, t_value_label)
+        self.add(curve1, curve2, curve3)
+        self.add(intersection_tracker)  # 添加交点跟踪器# 设置相机视角 (在动画开始前)
+        self.camera.frame.set_euler_angles(
+            theta=81.08 * DEGREES,
+            phi=77.95 * DEGREES,
+            gamma=0 * DEGREES
+        )
+        self.camera.frame.set_height(5.75)
+        self.camera.frame.move_to((-1.29, -0.51, 0.76))
+
+        # 初始化交点
+        update_intersections()
+
+        # 动画
+        self.play(
+            dt.animate.set_value(2 * PI),
+            run_time=5,
+            rate_func=smooth
+        )
+
+  
+       ##      self.camera.frame.move_to((0, 0, 3*np.sqrt(3)))
+        self.play(
+            self.camera.frame.animate
+                .move_to((0, 0, 1.5*np.sqrt(3)))
+                .scale(0.2),
+            run_time=3,
+            rate_func=smooth
+        )
+
+
+        self.play(
+            dt.animate.set_value(0),
+            run_time=5,
+            rate_func=smooth
+        )
+        self.play(
+            self.camera.frame.animate.restore(),  # 恢复相机到初始状态
+            run_time=3,
+            rate_func=smooth
+        )
+        # 旋转相机
+                # 替换第354-371行的代码：
+        
+        def cinematic_camera_rotation():
+            """电影级相机旋转 - 多轴协调"""
+            original_angles = self.camera.frame.get_euler_angles()
+            original_center = self.camera.frame.get_center()
+            
+            def update_camera(mob, alpha):
+                # 使用正弦函数创建更自然的运动
+                smooth_alpha = 0.5 * (1 - np.cos(PI * alpha))  # S曲线插值
+                
+                # 主旋转：绕垂直轴
+                phi_rotation = 0.2 * np.sin(4 * PI * alpha)
+                
+                # 副旋转：轻微的上下摆动
+                theta_wobble = 2 * PI * smooth_alpha
+                # 轻微的左右摆动
+                gamma_wobble = 0.2 * np.sin(2 * PI * alpha)
+                # 距离变化：轻微的缩放效果
+                distance_factor = 1 + 0.1 * np.sin(2 * PI * alpha)
+
+                theta = original_angles[0] + theta_wobble
+                phi = original_angles[1] + phi_rotation
+                gamma = original_angles[2] + gamma_wobble
+
+                mob.set_euler_angles(theta=theta, phi=phi, gamma=gamma)
+                
+                # 可选：轻微改变观察距离
+                new_height = 5.75 * distance_factor
+                mob.set_height(new_height)
+            
+            return UpdateFromAlphaFunc(self.camera.frame, update_camera)
+        
+        # 执行电影级旋转
+        self.play(
+            cinematic_camera_rotation(),
+            run_time=8,
+            rate_func=linear
+        )
+        
+        # 添加调试功能
+        def show_camera_info():
+            """显示相机信息"""
+            theta, phi, gamma = self.camera.frame.get_euler_angles()
+            center = self.camera.frame.get_center()
+            height = self.camera.frame.get_height()
+            
+            print("=" * 50)
+            print("📷 相机信息:")
+            print(f"  θ (theta): {theta/DEGREES:.2f}°")
+            print(f"  φ (phi): {phi/DEGREES:.2f}°")
+            print(f"  γ (gamma): {gamma/DEGREES:.2f}°")
+            print(f"  中心位置: ({center[0]:.2f}, {center[1]:.2f}, {center[2]:.2f})")
+            print(f"  视野高度: {height:.2f}")
+            print("=" * 50)
+        def show_current_intersections():
+            """显示当前交点信息"""
+            current_dt = dt.get_value()
+            intersections = find_intersections(current_dt)
+            print(f"\nCurrent δt = {current_dt:.3f}")
+            print(f"Number of intersections: {len(intersections)}")
+            for i, (y, z) in enumerate(intersections):
+                print(f"  Intersection {i+1}: y = {y:.3f}, z = {z:.3f}")
+        
+        self.show_camera_info = show_camera_info
+        self.show_current_intersections = show_current_intersections
+        self.find_intersections = find_intersections
+        print("🎯 Intersection calculation feature added!")
+        print("💡 Available commands in interactive mode:")
+        print("   self.show_current_intersections() - Show current intersections")
+        print("   self.find_intersections(δt_value) - Calculate intersections for specific δt")
+        
+        self.embed()
+
+if __name__ == "__main__":
+    import os
+    os.system("manimgl c.py ImprovedWaves")

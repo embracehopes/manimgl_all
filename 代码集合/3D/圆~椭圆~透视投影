@@ -1,0 +1,163 @@
+
+from manimlib import *
+import numpy as np
+
+class Circleellipse(Scene):  # 类名应该使用 PascalCase
+    CONFIG = {
+        "camera_config": {
+            "pixel_width": 1080,
+            "pixel_height": 1920,
+        },
+        "frame_config": {
+            "frame_height": 8.0,
+            "frame_width": 4.5,
+        }
+    }
+
+    def construct(self):
+        label = Text("斜着看的圆是椭圆吗",
+                         font="汉仪瘦金书简",
+                         font_size=150)
+        label.fix_in_frame()
+        label.move_to(ORIGIN)
+        label.set_color_by_gradient(BLUE, GREEN, YELLOW, ORANGE, RED)
+        self.add(label)
+        self.wait()
+        self.play(
+            label.animate.scale(0.4).to_corner(UL),
+            run_time=0.5,
+            rate_func=smooth
+        )
+
+        # 创建完整圆形的组件
+        top_half_circle = Arc(
+            radius=2,
+            angle=PI,
+            color=BLUE,
+            fill_opacity=0.5
+        )
+        bottom_half_circle = Arc(
+            radius=2,
+            angle=PI,
+            color=RED,
+            fill_opacity=0.5
+        ).rotate(PI, axis=OUT, about_point=ORIGIN)  # 链式调用更简洁
+        
+        # 创建分界线
+        dividing_line = Line(
+            start=LEFT * 2,
+            end=RIGHT * 2,
+            color=YELLOW,
+            stroke_width=2
+        )
+        ##圆的轮廓线
+        circle_outline = Circle(
+            radius=2,
+            stroke_color=WHITE,
+            stroke_width=2
+            
+        )
+        ##画个椭圆
+
+        
+        # 组合静态和动画元素
+        base_group = VGroup(top_half_circle, bottom_half_circle, dividing_line, circle_outline)
+        still_group = base_group.copy().shift(UP * 2)
+        animate_group = base_group.shift(DOWN * 2)
+
+        # 创建参考框架
+        reference_lines = VGroup(
+            Line(LEFT * 2 + UP * 2, LEFT * 2 + DOWN * 2, color=MAROON, stroke_width=2),
+            Line(RIGHT * 2 + UP * 2, RIGHT * 2 + DOWN * 2, color=MAROON, stroke_width=2)
+        )
+        
+        # 添加所有元素到场景
+        self.add(still_group, animate_group, reference_lines)
+        
+        # 执行 3D 旋转动画
+        self.play(
+            animate_group.animate.rotate(
+                angle=PI/2 - 0.3,
+                axis=np.array([1, 0, 0]),
+                about_point=np.array([0, -2, 0])  # 使用 numpy 数组更明确
+            ),
+            run_time=3,
+            rate_func=linear
+        )
+        
+
+        self.play(
+            self.camera.frame.animate.move_to(DOWN * 2 ).scale(0.4),
+            run_time=2,
+            rate_func=smooth
+        )
+
+        ##清除所有元素
+        self.clear()
+        ##加上圆的轮廓
+        self.add(circle_outline, dividing_line)
+        self.play(
+            circle_outline.animate.set_color(GOLD).set_stroke(width=2),
+            run_time=1,
+            rate_func=smooth
+        )
+        textglow = Text("轮廓为椭圆", font="汉仪瘦金书简", font_size=2)
+        textglow.set_color_by_gradient(BLUE, GREEN, YELLOW, ORANGE, RED)
+        textglow.fix_in_frame()
+        textglow.move_to(ORIGIN)
+        self.add(textglow)
+        self.play(
+            textglow.animate.scale(100),
+            run_time=1,
+            rate_func=smooth
+        )
+        ##清除所有元素
+        self.clear()
+
+        ##恢复所有元素
+        self.play(FadeIn(still_group), FadeIn(animate_group), FadeIn(reference_lines),FadeIn(label))
+
+
+        self.play(
+            self.camera.frame.animate.move_to(DOWN * 2 ).scale(3),
+            run_time=2,
+            rate_func=smooth
+        )
+
+        self.play(
+        self.camera.frame.animate.rotate(PI/2-0.3, axis=RIGHT),
+        run_time=2,
+        rate_func=smooth
+    )
+        def cinematic_camera_rotation():
+            """电影级相机旋转 - 多轴协调"""
+            original_angles = self.camera.frame.get_euler_angles()
+            def update_camera(mob, alpha):
+                # 使用正弦函数创建更自然的运动
+                smooth_alpha = 0.5 * (1 - np.cos(PI * alpha))  # S曲线插值
+                # 主旋转：绕垂直轴
+                phi_rotation = 0.2 * np.sin(4 * PI * alpha)
+                # 副旋转：轻微的上下摆动
+                theta_wobble = 2 * PI * smooth_alpha
+                # 轻微的左右摆动
+                gamma_wobble = 0.2 * np.sin(2 * PI * alpha)
+
+                theta = original_angles[0] + theta_wobble
+                phi = original_angles[1] + phi_rotation
+                gamma = original_angles[2] + gamma_wobble
+                mob.set_euler_angles(theta=theta, phi=phi, gamma=gamma)
+                # 可选：轻微改变观察距离
+
+            return UpdateFromAlphaFunc(self.camera.frame, update_camera)
+        # 执行电影级旋转
+        self.play(
+            cinematic_camera_rotation(),
+            run_time=8,
+            rate_func=linear
+        )
+
+    
+
+if __name__ == "__main__":
+    import os
+    os.system("manimgl b.py Circleellipse ")

@@ -1,0 +1,161 @@
+from manimlib import *
+import numpy as np
+
+class sphererotating(Scene):
+    def construct(self):
+        # 创建坐标轴
+        colors_all= [RED, GREEN, BLUE, YELLOW, ORANGE, PURPLE, PINK, WHITE, BLACK, GREY,GOLD, MAROON, GREY_BROWN]##13种
+        # 青色系列
+        color_all = [GREEN, GREEN_A, GREEN_B, GREEN_C, GREEN_D, GREEN_E]
+        # 蓝色系列
+        color_blue = [BLUE, BLUE_A, BLUE_B, BLUE_C, BLUE_D, BLUE_E]
+        # 黄色系列
+        color_yellow = [YELLOW, YELLOW_A, YELLOW_B, YELLOW_C, YELLOW_D, YELLOW_E]
+        # 青绿色系列
+        color_teal = [TEAL, TEAL_A, TEAL_B, TEAL_C, TEAL_D, TEAL_E]
+        # 其他颜色
+        color_other = [GOLD, MAROON, GREY_BROWN]
+        Axes = ThreeDAxes(
+            x_range=(-8, 8, 1),
+            y_range=(-4, 4, 1),
+            z_range=(-2, 2, 1),
+            height=6,
+            width=16,
+            depth=6,
+            axis_config={"include_ticks": False}
+        )
+        self.camera.frame.set_euler_angles(
+            theta=70 * DEGREES,
+            phi=30 * DEGREES,
+        )
+        self.add(Axes)
+        self.camera.frame.set_height(6)
+        
+        # 定义球体点轨迹创建函数
+        def create_sphere_with_point_traces(
+            sphere_center=ORIGIN,
+            radius=1,
+            n_meridians=50,
+            n_dots=15,
+            dot_radius=0.01,
+            stroke_width=2,
+            step_size=0.01
+        ):
+            traced_paths = VGroup()
+            moving_dots = VGroup()
+            all_animations = []
+            
+            # 创建经线轨迹
+            for i in range(n_meridians):
+                if (i < (n_meridians/2))== 0:
+                        longitude = i * 2 * PI / n_meridians
+                        
+                        def meridian_path(t, lon=longitude):
+                                latitude = 2* t * PI  # 从0到π (北极到南极)
+                                x = radius * np.cos(lon) * np.sin(latitude)
+                                y = radius * np.sin(lon) * np.sin(latitude)
+                                z = radius * np.cos(latitude)
+                                return np.array([x, y, z]) + sphere_center
+                        path_curve = ParametricCurve(
+                                lambda t: meridian_path(t, longitude),
+                                t_range=[0, 1, step_size],
+
+                        )
+                        # 在每条经线上延迟十次
+                        for j in range(n_dots):
+                            # 计算每个点在经线上的起始位置（等间隔分布）
+                            start_t = j / n_dots
+                            
+                            dot = Dot(
+                                radius=dot_radius,
+                                color=color_all[i % len(color_all)] , # 使用颜色列表循环
+                            )
+                        
+                            
+                            # 创建轨迹追踪
+                            traced_path1 = TracedPath(
+                                dot.get_center,
+                                stroke_color=TEAL_A , # 使用颜色列表循环
+                                stroke_width=1,
+                                stroke_opacity=0.4,
+                                time_traced=1
+                            )
+                            traced_path2 = TracedPath(
+                                dot.get_center,
+                                stroke_color=TEAL_B , # 使用颜色列表循环
+                                stroke_width=1,
+                                stroke_opacity=0.2,
+                                time_traced=1.5
+                            )
+                           
+                            traced_paths.add(traced_path1)
+                            traced_paths.add(traced_path2)
+                            moving_dots.add(dot)
+                            
+                            # 创建沿路径运动的动画
+                            all_animations.append(MoveAlongPath(dot, path_curve,
+                                rate_func=lambda t, start_t=start_t: (t + start_t) % 1,##start_t=start_t，lambda函数的封包性质
+                                run_time=15  # 从50%开始
+                            ))
+
+                else:
+                      continue
+
+            return traced_paths, moving_dots, all_animations
+
+        # 调用函数创建球体
+        traces, dots, animations = create_sphere_with_point_traces(
+            sphere_center=ORIGIN,
+            radius=2,
+            n_meridians=50,
+            n_dots=15
+        )
+        
+        # 添加轨迹追踪到场景
+        self.add(*traces)
+          # 添加点到场景
+        self.add(*dots)
+        
+        target_dot = dots[3 * 15 + 2]  # 第4条经线的第3个点
+        dot_tracker = GlowDot(
+            center=target_dot.get_center(),
+            radius=0.05,
+            color=ORANGE,
+            glow_factor=2
+        )
+        self.add(dot_tracker)        # 让tracker跟随dot移动
+        dot_tracker.add_updater(lambda m: m.move_to(target_dot.get_center()))
+     
+        # 初始设置 - 平滑过渡到跟踪位置
+
+        self.camera.frame.add_updater(
+            lambda m: m.move_to(dot_tracker.get_center())
+        )
+        
+        # 电影级别的运镜设置
+
+        
+
+
+        # 播放所有动画
+        self.play(*animations,self.camera.frame.animate.move_to(dot_tracker.get_center()).scale(0.2))
+
+        # 清除所有updater
+        dot_tracker.clear_updaters()
+        self.camera.frame.clear_updaters()
+        
+
+
+        # 找到特定的dot并添加tracker
+
+        # ...existing code...
+        
+        
+
+        
+        self.wait(1)
+
+
+if __name__ == "__main__":
+    import os
+    os.system("manimgl b.py sphererotating")

@@ -1,0 +1,103 @@
+from manimlib import *
+import numpy as np
+
+class AnimatingMethods(Scene):
+    def construct(self):
+        # 相机初始视角
+        self.camera.frame.set_euler_angles(
+            theta=130 * DEGREES,
+            phi=70 * DEGREES,
+        )
+        self.camera.frame.set_height(20)
+
+        # 创建标题文本
+        cone_label = Text("圆锥展开成扇形动画演示",
+                         font="汉仪瘦金书简",
+                         font_size=50)
+        cone_label.fix_in_frame()
+        cone_label.to_corner(UL)
+        cone_label.set_color_by_gradient(BLUE, GREEN, YELLOW, ORANGE, RED)
+        self.add(cone_label)
+        
+        # 创建坐标系
+        axes = ThreeDAxes(
+            x_range=(-5, 5),
+            y_range=(-5, 5),
+            z_range=(-4, 4),
+            height=6,
+            width=6,
+            depth=6
+        )
+        x_axis = Arrow(axes.c2p(-5, 0, 0), axes.c2p(5, 0, 0), color=RED)
+        self.add(x_axis)
+
+        # 创建ValueTracker
+        t = ValueTracker(0)
+        camera_angle = ValueTracker(0)  # 控制相机旋转的ValueTracker
+        
+        # 创建圆锥曲面
+        def get_cone():
+            return ParametricSurface(
+                lambda u, v: np.array([
+                    2*(1 - u) * np.cos(v),
+                    2*(1 - u) * np.sin(v),
+                    u * 2 * np.sqrt(3)
+                ]),
+                u_range=(0, 1),
+                v_range=(0, TAU - 2 * t.get_value()),
+                color=BLUE_C,
+                opacity=0.5
+            )
+        
+        # 创建扇形曲面
+        def get_sector():
+            return ParametricSurface(
+                lambda u, v: np.array([
+                    u * np.cos(v),
+                    u * np.sin(v),
+                    0
+                ]),
+                u_range=(0, 4),
+                v_range=(0, t.get_value()),
+                color=YELLOW,
+                opacity=0.5
+            ).rotate(PI/2, axis=UP, about_point=(0, 0, 0)).rotate(-PI/2, axis=OUT, about_point=(0, 0, 0)).rotate(-30*DEGREES, axis=UP, about_point=(0, 0, 0)).shift(OUT*2* np.sqrt(3)).rotate(-2*t.get_value(), axis=OUT, about_point=(0, 0, 0))
+        
+        # 初始化曲面
+        cone = get_cone()
+        sector = get_sector()
+        
+        # 添加更新器
+        cone.add_updater(lambda m: m.become(get_cone()))
+        sector.add_updater(lambda m: m.become(get_sector()))
+        
+        # 添加相机旋转更新器
+        initial_phi = 70 * DEGREES
+        self.camera.frame.add_updater(
+            lambda m: m.set_euler_angles(
+                theta=130 * DEGREES- camera_angle.get_value() ,
+                phi=initial_phi  # 顺时针旋转
+            )
+        )
+        
+        # 添加到场景
+        self.add(cone, sector)
+        
+        # 同时播放展开和旋转动画
+        self.play(
+            t.animate.set_value(PI),
+            camera_angle.animate.set_value(TAU),  # 旋转一整圈
+            run_time=3,
+            rate_func=smooth
+        )
+        
+        # 清除所有更新器
+        sector.clear_updaters()
+        cone.clear_updaters()
+        self.camera.frame.clear_updaters()
+        
+       
+
+if __name__ == "__main__":
+    import os
+    os.system("manimgl a.py AnimatingMethods")
