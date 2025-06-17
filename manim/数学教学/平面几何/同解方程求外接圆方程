@@ -1,0 +1,169 @@
+from calendar import c
+from operator import eq
+from re import L
+from glm import e
+from manim import *  # 移除了不必要的glm导入，可能导致问题
+import numpy as np
+
+class CardioideDerivation(Scene):
+    def construct(self):
+               
+        # 题目 - 使用英文引号避免编码问题
+        title = Tex(r"求解：$y = 7 - x^2$ 与 $y = \frac{4}{x}$ 的交点为三角形的外接圆方程", 
+                        tex_template=TexTemplateLibrary.ctex,
+                        font_size=40
+                        ).to_edge(UP)
+        title.add_background_rectangle(color=PINK, opacity=0.5)
+        self.add(title)
+        # 创建坐标系
+        axes = Axes(
+            x_range=[-7.5, 7.5, 1],
+            y_range=[-6, 9, 1],
+            x_length=9,
+            y_length=9,
+            axis_config={"include_ticks": False, "tip_shape": StealthTip, "tip_width": 0.2, "tip_height": 0.2}
+        )
+        #把坐标做向下移动一个单位
+        axes.shift(DOWN*1.5)
+     
+        axes_labels = axes.get_axis_labels(x_label="x", y_label="y")
+        #把y轴的标签向下移动一个单位
+        axes_labels[1].shift(DOWN*0.8)
+        # 创建函数：y = 7 - x^2 和 y = 4/x
+        def f1(x):
+            return 7 - x**2
+            
+        def f2(x):
+            return 4 / x
+        
+        # 绘制两个函数曲线
+        parabola = axes.plot(f1, x_range=[-7, 7], color=BLUE)
+        hyperbola = VGroup(
+            axes.plot(f2, x_range=[0.56, 7], color=RED),
+            axes.plot(f2, x_range=[-7, -0.56], color=RED)
+        )
+        
+        # 显示曲线公式y = 7 - x^2，y = \frac{4}{x}
+        step_text1 = Tex(r"将 $y = \frac{4}{x}$ 转换为 $xy = 4$",
+            tex_template=TexTemplateLibrary.ctex,
+            color=TEAL,
+            ).to_corner(UL).shift(DOWN)
+
+        step_text2 = Tex(r"两端同乘以$y$", 
+            tex_template=TexTemplateLibrary.ctex,
+            color=TEAL,
+            ).to_corner(UL).shift(DOWN)
+
+        step_text3 = Tex(r" $xy = 4$代入$y^2 = 7y - x \cdot xy$",
+            tex_template=TexTemplateLibrary.ctex,
+            color=TEAL).to_corner(UL).shift(DOWN)
+
+        step_text4 = Tex(r"联立抛物线，消方程中$y$",
+            tex_template=TexTemplateLibrary.ctex,
+            color=TEAL).to_corner(UL).shift(DOWN)
+        
+        step_text5 = Tex(r"可得外接圆方程为：",
+            tex_template=TexTemplateLibrary.ctex,
+            color=TEAL).to_corner(UL).shift(DOWN)
+        
+        
+        
+        
+        eqini = MathTex(
+            r"\left\{\begin{array}{l} y = 7 - x^2 \\y = \frac{4}{x} \end{array}\right."
+        ).next_to(step_text1, DOWN).shift(DOWN*0.5).align_to(step_text1,LEFT)
+        
+
+        # 计算三个交点（在数学推导中已确定）
+        # 解方程组，交点为 (-2.893, -1.383), (0.596, 6.711), (2.291, 1.746)
+        intersection_points = [(-2.893, -1.383), (0.596, 6.711), (2.291, 1.746)]
+        dot1= Dot(axes.c2p(*intersection_points[0]), color=YELLOW)
+        dot2= Dot(axes.c2p(*intersection_points[1]), color=YELLOW)
+        dot3= Dot(axes.c2p(*intersection_points[2]), color=YELLOW)
+        
+        # 创建三角形
+        triangle = Polygon(
+            axes.c2p(-2.893, -1.383),
+            axes.c2p(0.596, 6.711),
+            axes.c2p(2.291, 1.746),
+            color=GREEN
+        )
+        triangle.set_fill(GREEN, opacity=0.5)
+       
+        # 外接圆
+        parametric_circle = ParametricFunction(
+            lambda t: axes.c2p(-2 + np.sqrt(20) * np.cos(t), 3 + np.sqrt(20) * np.sin(t)),
+            t_range=np.array([0, TAU]), color=PURPLE
+        )
+        
+        # 外接圆方程
+        circle_eq = MathTex(r"(x+2)^2 + (y-3)^2 = 20").set_color(PURPLE).to_edge(RIGHT).add_background_rectangle().shift(RIGHT*0.2)
+        # 添加圆心标记
+        circle_center = Dot(axes.c2p(-2, 3), color=PURPLE)
+        center_label = MathTex("(-2,3)").next_to(circle_center, UL, buff=0.2).add_background_rectangle()
+
+        # 添加点的标签
+        point_labels = VGroup(
+            MathTex("A").next_to(axes.c2p(-2.893, -1.383), DL, buff=0.2),
+            MathTex("B").next_to(axes.c2p(0.596, 6.711), UR, buff=0.2),
+            MathTex("C").next_to(axes.c2p(2.291, 1.746), RIGHT, buff=0.2)
+        )
+      
+        
+
+        
+        # 创建动画
+        self.add(axes, axes_labels,parabola, hyperbola, dot1, dot2, dot3,eqini)
+        # 显示三个交点
+        self.play(Indicate(dot1,3), Indicate(dot2,3), Indicate(dot3,3))
+        self.play(Write(point_labels))
+        
+    
+        # 创建三角形
+        self.play(Create(triangle))
+
+
+        
+        ###公式变换
+        # 创建方程组的各个步骤
+        eq1 = MathTex(
+            r"\left\{\begin{array}{l} y = 7 - x^2 \\ xy = 4 \end{array}\right."
+        ).next_to(step_text1, DOWN).shift(DOWN*0.5).align_to(step_text1,LEFT)
+        self.play(Write(step_text1), run_time=0.5)
+        self.play(TransformMatchingShapes(eqini, eq1), run_time=2)
+
+       #把eq2中的y^2换成y\cdot y
+        eq2 = MathTex(
+            r"\left\{\begin{array}{l} y \cdot y = 7y - x \cdot xy \\ xy = 4 \end{array}\right."
+        ).next_to(step_text1, DOWN).shift(DOWN*0.5).align_to(step_text1,LEFT)
+        self.play(ReplacementTransform(step_text1,step_text2), run_time=0.5)
+        self.play(TransformMatchingShapes(eq1, eq2), run_time=2)
+        self.play(Indicate(eq2[0][3], color=YELLOW),Indicate(eq2[0][6], color=YELLOW),Indicate(eq2[0][11], color=YELLOW), run_time=1.5)
+                  
+        eq3 = MathTex(
+            r"\left\{\begin{array}{l} y^2 = 7y - 4x \\ xy = 4 \end{array}\right."
+        ).next_to(step_text1, DOWN).shift(DOWN*0.5).align_to(step_text1,LEFT)
+        self.play(ReplacementTransform(step_text2, step_text3), run_time=0.5)
+        self.play(TransformMatchingShapes(eq2, eq3), run_time=2)
+        self.play(Indicate(eq3[0][7], color=YELLOW), Indicate(eq3[0][9:13], color=YELLOW), run_time=1.5)
+      
+        eq4 = MathTex(
+            r"\left\{\begin{array}{l} y^2 = 7y - 4x \\ y = 7 - x^2 \end{array}\right."
+        ).next_to(step_text1, DOWN).shift(DOWN*0.5).align_to(step_text1,LEFT)
+        self.play(ReplacementTransform(step_text3, step_text4), run_time=0.5)
+        self.play(TransformMatchingShapes(eq3, eq4), run_time=2)
+        self.play(Indicate(eq4[0][5], color=YELLOW), Indicate(eq4[0][9:15], color=YELLOW), run_time=1.5)
+
+        final_eq = MathTex(
+            r"(x+2)^2 + (y-3)^2 = 20"
+        ).next_to(step_text1, DOWN).shift(DOWN*0.5).align_to(step_text1,LEFT)
+        self.play(ReplacementTransform(step_text4,step_text5), run_time=0.5)
+        self.play(TransformMatchingShapes(eq4, final_eq), run_time=2)
+        
+
+             # 显示外接圆
+        self.play(Create(circle_center))
+        self.play(Create(parametric_circle))
+        self.play(FadeOut(step_text5), FadeOut(final_eq))
+        self.play(Write(center_label), Write(circle_eq))
+        

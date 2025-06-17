@@ -1,0 +1,98 @@
+# -*- coding: utf-8 -*-
+"""
+Spyder 编辑器
+
+这是一个临时脚本文件。
+"""
+from manim import *
+from math import sqrt
+
+class ThreeDQuadrilateral(ThreeDScene):
+    def construct(self):
+        # 计算各点坐标
+        sqrt10 = sqrt(10)
+        sqrt55 = sqrt(55)
+
+        # 原始点坐标
+        A = np.array([0, 0, 0])
+        B = np.array([sqrt10, 0, 0])
+        D = np.array([0, sqrt10, 0])
+        C = np.array([3 * sqrt10 / 2, 3 * sqrt10 / 2, 0])
+        P = np.array([21 * sqrt10 / 20, 21 * sqrt10 / 20, 3 * sqrt55 / 10])
+        
+        # 计算底面中心
+        center_base = (A + B + C + D) / 4
+        
+        # 手动更新后的坐标（相对于中心平移）
+        A_new = A - center_base
+        B_new = B - center_base
+        D_new = D - center_base
+        C_new = C - center_base
+        P_new = P - center_base
+
+        # 轨迹计算公式
+        PB = P_new - B_new
+        PC = P_new - C_new
+        
+        def q_traj(t):
+            u = t * 0.75
+            v = (6 - 8*u) / 9
+            return P_new - u * PB - v * PC
+
+        # Q 点的初始位置
+        Q_new = q_traj(0)
+
+        # 创建四棱锥结构
+        base = Polygon(A_new, B_new, C_new, D_new, color=BLUE, fill_opacity=0)
+        edges = VGroup(
+            Line(A_new, B_new, color=PURPLE), Line(A_new, D_new, color=PURPLE), Line(B_new, C_new, color=PURPLE), Line(D_new, C_new, color=PURPLE),
+            Line(B_new, P_new, color=PURPLE), Line(C_new, P_new, color=PURPLE), Line(D_new, P_new, color=PURPLE), Line(A_new, P_new, color=PURPLE),
+        )
+        
+        sides = VGroup(
+            Polygon(B_new, C_new, P_new, color=GREEN, fill_opacity=0),
+            Polygon(D_new, C_new, P_new, color=GREEN, fill_opacity=0),
+            Polygon(A_new, B_new, P_new, color=GREEN, fill_opacity=0),
+            Polygon(A_new, D_new, P_new, color=GREEN, fill_opacity=0)
+        )
+
+        # 轨迹曲线
+        trajectory = ParametricFunction(
+            q_traj,
+            t_range=[0, 1, 0.01],
+            color=YELLOW
+        )
+        
+        # Q 点
+        q_dot = Dot3D(color=RED).move_to(Q_new)
+
+        # 让 QA 和 QD 变成动态更新的线段
+        QA = always_redraw(lambda: Line(q_dot.get_center(), A_new, color=ORANGE))
+        QD = always_redraw(lambda: Line(q_dot.get_center(), D_new, color=ORANGE))
+
+        # 定义一个函数来创建竖直字符
+        def vertical_text(text, position, color=WHITE):
+            letters = VGroup(*[Text(c, color=color).rotate(PI/2, axis=RIGHT) for c in text])
+            letters.arrange(DOWN, buff=0.05).move_to(position)
+            return letters
+
+        # 手动更新标签位置
+        label_A = vertical_text("A", A_new + np.array([-0.2, -0.2, 0.2]))
+        label_B = vertical_text("B", B_new + np.array([0.2, -0.2, 0.2]))
+        label_C = vertical_text("C", C_new + np.array([0.2, 0.2, 0.2]))
+        label_D = vertical_text("D", D_new + np.array([-0.2, 0.2, 0.2]))
+        label_P = vertical_text("P", P_new + np.array([0, 0, 0.3]))
+        label_Q = always_redraw(lambda: vertical_text("Q", q_dot.get_center() + np.array([0, 0, 0.3]), color=RED))
+
+        labels = VGroup(label_A, label_B, label_C, label_D, label_P, label_Q)
+
+        # 设置相机和动画
+        self.set_camera_orientation(phi=75*DEGREES, theta=-90*DEGREES)
+        self.begin_ambient_camera_rotation(rate=PI/22, about="theta")  # 180度旋转
+        
+        self.add(base, sides, edges, trajectory, q_dot, QA, QD, labels)
+        self.play(
+            MoveAlongPath(q_dot, trajectory, rate_func=linear, run_time=6),
+            run_time=6
+        )
+        self.wait(2)

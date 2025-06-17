@@ -1,0 +1,55 @@
+from manim import *
+
+# 定义 create_glow 函数 [7]
+def create_glow(vmobject, rad=1, num_layers=60, color=YELLOW, 
+                base_opacity=0.2, opacity_falloff_rate=300):
+    glow_group = VGroup()
+    for i in range(num_layers):
+        # 略微调整了公式，如果需要可以进行更多控制
+        layer_radius = rad * (1.002**(i**2)) / 400 
+        # 确保透明度不会为负
+        layer_opacity = max(0, base_opacity - i / opacity_falloff_rate) 
+
+        new_circle = Circle(
+            radius=layer_radius,
+            stroke_opacity=0, # 无描边
+            fill_color=color,
+            fill_opacity=layer_opacity
+        )
+        # 确保它居中于vmobject的当前中心
+        new_circle.move_to(vmobject.get_center()) 
+        glow_group.add(new_circle)
+    return glow_group
+
+class GlowingDotScene(Scene):
+    def construct(self):
+        # 基础点
+        my_dot = Dot(point=ORIGIN, radius=0.1, color=BLUE)
+
+        # 为点创建辉光效果
+        # 尝试调整参数以获得不同外观：
+        # rad: 辉光层的基础半径因子
+        # num_layers: 层数越多 = 更平滑但计算量更大
+        # color: 辉光的颜色
+        # base_opacity: 最内层辉光层的起始透明度
+        # opacity_falloff_rate: 外层辉光层透明度递减的速度
+        dot_glow = create_glow(my_dot)
+
+        # 将点及其辉光组合以便于操作（如果需要）
+        glowing_dot_vgroup = VGroup(my_dot, dot_glow)
+        # 或者，如果场景中有其他对象，可以分开添加以控制分层
+        # self.add(dot_glow, my_dot) # 先添加辉光，然后将点置于其上
+
+        self.add(glowing_dot_vgroup)
+        self.wait(2)
+
+        # 辉光点动画示例
+        self.play(glowing_dot_vgroup.animate.shift(RIGHT*2), run_time=2)
+
+        # 如果点通过updater动态移动，要使辉光也动态变化，
+        # 辉光也需要一个updater或被重绘。
+        # 对于简单的动画，对VGroup进行动画处理就足够了。
+
+if __name__ == "__main__":
+    import os
+    os.system("manim -pqh a.py TexturedSurfacesDemo")

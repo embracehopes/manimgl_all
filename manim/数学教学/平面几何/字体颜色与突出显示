@@ -1,0 +1,200 @@
+from manim import *
+
+
+class GradientTextExample(Scene):
+    def construct(self):
+        text1 = Text("渐变色文字示例1", font="WenQuanYi Zen Hei")
+        text2 = Text("渐变色文字示例2", font="WenQuanYi Zen Hei")
+        
+        text1.set_color_by_gradient(RED, YELLOW)#左右渐变色
+        text2.set_color_by_gradient((TEAL, PURPLE))#上下渐变色
+        text=VGroup(text1,text2).arrange(DOWN)#从上到下排列
+        self.play(Write(text))
+        highlight_text = text[:3]
+
+        # 应用 Indicate 动画
+        self.play(Indicate(highlight_text))
+        self.wait(1)
+
+        # 应用 Flash 动画
+        self.play(Flash(highlight_text))
+        self.wait(1)
+
+        # 应用 ShowPassingFlash 动画
+        self.play(ShowPassingFlash(highlight_text.copy().set_color(YELLOW)))
+        self.wait(1)
+
+        # 应用 ApplyWave 动画
+        self.play(ApplyWave(highlight_text))
+        self.wait(1)
+
+        # 应用 Wiggle 动画
+        self.play(Wiggle(highlight_text))
+        self.wait(2)
+           # 提取要突出显示的部分文字
+        highlight_text = text[:3]
+
+        # 动画方框圈画突出显示
+        rectangle = SurroundingRectangle(highlight_text, color=BLUE)
+        self.play(Create(rectangle))
+        self.wait(1)
+        self.play(FadeOut(rectangle))
+
+        # 动态在文字下方画横线
+        start_point = highlight_text.get_left()
+        start_point[1] = highlight_text.get_bottom()[1]
+        end_point = highlight_text.get_right()
+        end_point[1] = highlight_text.get_bottom()[1]
+        underline = Line(start_point, end_point, color=GREEN)
+        self.play(GrowFromEdge(underline, LEFT))
+        self.wait(1)
+        self.play(FadeOut(underline))
+        self.play(FadeOut(text))
+
+   
+from manim import *
+##特殊符号得用双引号把要单独操作的隔离起来
+class HighlightSpecialSymbols(Scene):
+    def construct(self):
+        # 创建方程,用双引号把要单独操作的隔离起来
+        equation = MathTex(r"\alpha", r"+", r"\beta", r"=", r"\sum_{i = 1}^{n} i", font_size=72)
+
+        # 找到特殊符号
+        alpha = equation.get_parts_by_tex(r"\alpha")
+        plus = equation.get_parts_by_tex(r"+")
+        summation = equation.get_parts_by_tex(r"\sum")
+
+        # 初始变色
+        for part in alpha:
+            part.set_color(RED)
+        for part in plus:
+            part.set_color(BLUE)
+        for part in summation:
+            part.set_color(GREEN)
+
+        # 显示方程
+        self.play(Write(equation))
+        self.wait(1)
+
+        # 创建环绕矩形，仅环绕 \sum 符号
+        rectangle = SurroundingRectangle(VGroup(*summation), color=YELLOW)
+
+        # 仅对 \sum 符号进行变大、变色、旋转，添加闪烁和环绕动画
+        self.play(
+            *[s.animate.set_color(YELLOW).scale(1.5).rotate(PI / 4) for s in summation],
+            Flash(VGroup(*summation), color=YELLOW),
+            Create(rectangle)
+        )
+        self.wait(1)
+
+        # 仅对 \sum 符号还原颜色、大小、旋转，移除环绕矩形
+        self.play(
+            *[s.animate.set_color(GREEN).scale(1 / 1.5).rotate(-PI / 4) for s in summation],
+            FadeOut(rectangle)
+        )
+        self.wait(1)
+        
+    from manim import *
+
+##框两行文字
+class TextBoxAnimation(Scene):
+    def construct(self):
+        # 创建两行文字
+        text1 = Text("第一行文字")
+        text2 = Text("第二行文字")
+
+        # 将两行文字垂直排列
+        text_group = VGroup(text1, text2).arrange(DOWN)
+
+        # 将文字组添加到场景中
+        self.add(text_group)
+
+        # 创建围绕文字组的方框
+        rectangle = SurroundingRectangle(text_group, color=BLUE, buff=0.2)
+
+        # 播放创建方框的动画
+        self.play(Create(rectangle))
+        self.wait(1)
+from manim import *
+config.frame_width = 260 
+
+class    Find_Path(Scene):
+    def construct(self): # 定义一个名为Find_Path的类，继承自Scene类
+        obj = MathTex(r"minimize \quad \sum_{start}^{end}\frac{{d}_{i,i+1}}{{v}_{i,i+1}}",  # 定义一个MathTex对象，表示一个数学公式
+        font_size=1000, substrings_to_isolate="d" and "v"and "start"and "end") # 设置公式的大小，并指定要突出显示的子字符串
+        obj.set_color_by_tex("d", YELLOW) # 设置公式中"d"和"v"的颜色为黄色
+        obj.set_color_by_tex("start", GREEN) # 设置公式中"start"和"end"的颜色为绿色
+        obj.set_color_by_tex("end", GREEN)
+        obj.set_color_by_tex("v", RED) # 设置公式中"v"的颜色为红色
+        self.play(Write(obj)) # 播放公式出现的动画
+        self.wait(3) # 等待3秒
+        from manim import *
+##渐变可以三个颜色
+class GradientExample(Scene):
+    def construct(self):
+        t = Text("Hello", gradient=(RED, BLUE, GREEN), font_size=96) # 创建一个文本对象，文本内容为"Hello"，字体大小为96，颜色渐变从红色到蓝色到绿色
+        self.add(t) # 添加文本对象到场景中
+from manim import *
+##text改变颜色，有t2c和t2g
+class Textt2cExample(Scene):
+    def construct(self):
+        t2cindices = Text('Hello', t2c={'[1:-1]': BLUE}).move_to(LEFT) # 创建一个文本对象，文本内容为"Hello"，文本中第2到倒数第2个字符的颜色为蓝色
+        t2cwords = Text('World',t2c={'rl':RED}).next_to(t2cindices, RIGHT) # 创建一个文本对象，文本内容为"World"，文本中"rl"两个字符的颜色为红色
+        self.add(t2cindices, t2cwords) # 添加两个文本对象到场景中
+        from manim import *
+##
+class t2gExample(Scene):
+    def construct(self):
+        t2gindices = Text( # 创建一个文本对象，文本内容为"Hello"，文本中第2到倒数第2个字符的颜色渐变从红色到绿色
+            'Hello',
+            t2g={
+                '[1:-1]': (RED,GREEN),
+            },
+        ).move_to(LEFT)
+        t2gwords = Text( # 创建一个文本对象，文本内容为"World"，文本中"World"四个字符的颜色渐变从红色到蓝色
+            'World',
+            t2g={
+                'World':(RED,BLUE),
+            },
+        ).next_to(t2gindices, RIGHT)
+        self.add(t2gindices, t2gwords)
+        from manim import *
+##随机颜色
+class IterateColor(Scene):
+    def construct(self):
+        text = Text("Colors", font_size=96)
+        for letter in text: # 遍历文本中的每个字符
+            letter.set_color(random_bright_color()) # 将每个字符的颜色设置为随机颜色
+        self.add(text)
+
+
+
+##手动隔开，并给第三个大星星染色
+class LaTeXSubstrings(Scene):
+    def construct(self):
+        tex = Tex('Hello', r'$\bigstar$', r'\LaTeX', font_size=144)
+        tex.set_color_by_tex('igsta', RED)
+        self.add(tex)
+#分割开单独字符的办法
+from manim import *
+
+class CorrectLaTeXSubstringColoring(Scene):
+    def construct(self):
+        equation = MathTex(
+            r"e^x = x^0 + x^1 + \frac{1}{2} x^2 + \frac{1}{6} x^3 + \cdots + \frac{1}{n!} x^n + \cdots",
+            substrings_to_isolate="x"
+        )
+        equation.set_color_by_tex("x", YELLOW)
+        self.add(equation)
+from manim import *
+##调试单位组件的颜色，最有用的方法，dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd
+class IndexLabelsMathTex(Scene):
+    def construct(self):
+        text = MathTex(r"\binom{2n}{n+2}", font_size=96)
+
+        # index the first (and only) term of the MathTex mob
+        self.add(index_labels(text[0]))
+
+        text[0][1:3].set_color(YELLOW)
+        text[0][3:6].set_color(RED)
+        self.add(text)

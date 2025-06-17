@@ -1,0 +1,114 @@
+from manim import *
+import numpy as np
+
+class FunctionRotation(Scene):
+    def construct(self):
+        axes = Axes(
+            x_range=[-10, 10, 2],
+            y_range=[-10, 10, 2],
+            axis_config={"color": BLUE}
+        )
+        
+        def func(x, a=1):
+            return a * (x + 1) / np.exp(x)
+        
+        graph = axes.plot(lambda x: func(x, a=1), color=YELLOW)
+        
+        # Rotate the graph by 45 degrees counterclockwise
+        rotated_graph = graph.copy().rotate(PI/4, about_point=[0, 0, 0])
+        
+        self.play(Create(axes))
+        self.play(Create(graph), run_time=1)
+        self.wait(1)
+        
+        self.play(Transform(graph, rotated_graph), run_time=2)
+        
+        self.b = ValueTracker(-5)  # Define the ValueTracker before using it
+        
+        vertical_line = always_redraw(lambda: DashedLine(
+            start=axes.c2p(self.b.get_value(), 15),
+            end=axes.c2p(self.b.get_value(), -15),
+            color=RED
+        ))
+        
+        # Create the intersection point (moving dot)
+        def get_intersection_point():
+            # Step 1: Get the y value on the original graph at x = b
+            x_val = self.b.get_value()
+            y_val = func(x_val, a=1)
+            
+            # Step 2: Apply inverse rotation (-45 degrees)
+            rotation_matrix = np.array([
+                [np.cos(-PI/4), -np.sin(-PI/4)],
+                [np.sin(-PI/4), np.cos(-PI/4)]
+            ])
+            
+            # Apply the inverse rotation to the point (x_val, y_val)
+            rotated_point = rotation_matrix.dot(np.array([x_val, y_val]))
+            
+            # Return the intersection dot
+            return Dot(
+                point=axes.c2p(rotated_point[0], rotated_point[1]),
+                color=GREEN
+            )
+        
+        intersection_dot = always_redraw(get_intersection_point)
+        
+        self.play(Create(vertical_line), Create(intersection_dot))
+        
+        self.play(self.b.animate.set_value(5), run_time=5, rate_func=linear)
+        
+        self.wait(2)
+####x=4y^2的交点
+from manim import *
+import numpy as np
+
+class IntersectionAnimation(Scene):
+    def construct(self):
+        # 创建坐标系
+        axes = Axes(
+            x_range=[-10, 10, 2],
+            y_range=[-3, 3, 1],
+            axis_config={"color": BLUE}
+        )
+        
+        # 绘制函数 x = 4y^2
+        def func_y(y):
+            return 4 * y ** 2
+        
+        graph = axes.plot_parametric_curve(lambda t: np.array([func_y(t), t, 0]), t_range=[-3, 3], color=YELLOW)
+        
+        # 绘制垂直线 x = b
+        b = ValueTracker(-5)
+        vertical_line = always_redraw(lambda: Line(
+            start=axes.c2p(b.get_value(), -3),
+            end=axes.c2p(b.get_value(), 3),
+            color=RED,
+            stroke_width=2
+        ))
+        
+        # 交点是 (b, y) ，解 x = b = 4y^2
+        def get_intersection():
+            x_val = b.get_value()
+            # 解 4y^2 = x => y = sqrt(x / 4) 或 y = -sqrt(x / 4)
+            if x_val < 0:
+                return VGroup()  # 如果 x < 0 没有实数解，返回一个空的 VGroup
+            y_val = np.sqrt(x_val / 4)
+            intersection1 = Dot(axes.c2p(x_val, y_val), color=GREEN)
+            
+            return VGroup(intersection1)
+        
+        # 使用 always_redraw 来不断更新交点
+        intersection_dots = always_redraw(get_intersection)
+        
+        # 动画开始时创建所有对象
+        self.play(Create(axes), Create(graph), Create(vertical_line))
+        self.wait(1)
+        
+        # 创建交点
+        self.play(Create(intersection_dots))
+        
+        # 动态改变 b，移动垂直线，并更新交点
+        self.play(b.animate.set_value(5), run_time=6, rate_func=linear)
+        
+        self.wait(2)

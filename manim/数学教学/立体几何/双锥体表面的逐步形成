@@ -1,0 +1,65 @@
+from manim import *
+import numpy as np
+
+class SyncedRotationAndSurface(ThreeDScene):
+    def construct(self):
+        # 初始化3D场景和参数
+        self.set_camera_orientation(phi=75*DEGREES, theta=-45*DEGREES)
+        a = 1.0  # 直角边长度
+        vertices = [[-a,0,0], [0,a,0], [a,0,0]]  # 三角形顶点
+
+        # 创建三角形和旋转轴
+        triangle = Polygon(*vertices, color=ORANGE, fill_opacity=0.3)
+        axis = Line(vertices[0], vertices[2], color=RED)
+        self.play(Create(triangle), Create(axis))
+        self.wait(0.5)
+
+        # 定义动态曲面参数方程
+        def cone_surface(u, v):
+            x = v * a
+            y = (a - abs(v*a)) * np.cos(u)
+            z = (a - abs(v*a)) * np.sin(u)
+            return np.array([x, y, z])
+
+        # 初始化空曲面和轨迹线
+        surface = Surface(
+            cone_surface,
+            u_range=[0, 0.01],  # 初始仅显示微小角度
+            v_range=[-1, 1],
+            resolution=(30, 20),
+            fill_opacity=0.3,
+            stroke_width=1
+        ).set_color(BLUE)
+        trace_lines = VGroup()
+
+        # 添加初始对象
+        self.add(surface, trace_lines)
+        self.begin_ambient_camera_rotation(rate=0.3)
+
+        # 主动画：同步旋转和曲面生成
+        total_time = 4  # 动画总时长
+        n_steps = 10   # 动画分段数
+        delta_angle = 2*PI / n_steps
+
+        for i in range(n_steps):
+            # 更新曲面u_range
+            new_surface = Surface(
+                cone_surface,
+                u_range=[0, (i+1)*delta_angle],
+                v_range=[-1, 1],
+                resolution=(30, 20),
+                fill_opacity=0.3,
+                stroke_width=1
+            ).set_color(BLUE)
+            
+            
+            # 替换对象以实现逐帧更新
+            self.play(
+                Rotate(triangle, delta_angle, axis=RIGHT, about_point=ORIGIN),
+                Transform(surface, new_surface, run_time=0.1),
+                
+                run_time=total_time/n_steps
+            )
+            
+
+        self.wait(2)

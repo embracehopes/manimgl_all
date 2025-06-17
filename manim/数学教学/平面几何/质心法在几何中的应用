@@ -1,0 +1,516 @@
+from manim import *
+import numpy as np
+
+# 自定义 Tex 模板，加载 ctex 包以支持中文
+myTexTemplate = TexTemplate()
+myTexTemplate.add_to_preamble(r"\usepackage{ctex}")
+
+def intersection(line1, line2):
+    # 使用 line.get_start() 和 line.get_end() 获取线段的端点
+    x1, y1 = line1.get_start()[:2]
+    x2, y2 = line1.get_end()[:2]
+    x3, y3 = line2.get_start()[:2]
+    x4, y4 = line2.get_end()[:2]
+
+    denominator = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4)
+    if abs(denominator) < 1e-10:
+        raise Exception("lines do not intersect or are parallel")
+
+    # 计算交点坐标
+    px = ((x1 * y2 - y1 * x2) * (x3 - x4) - (x1 - x2) * (x3 * y4 - y3 * x4)) / denominator
+    py = ((x1 * y2 - y1 * x2) * (y3 - y4) - (y1 - y2) * (x3 * y4 - y3 * x4)) / denominator
+    return np.array([px, py, 0])
+def create_right_angle(line1, line2, length=0.3, color=RED):
+            # 获取线段的起点和终点
+            start1, end1 = line1.get_start_and_end()
+            start2, end2 = line2.get_start_and_end()
+
+            # 计算两个线段的方向向量
+            dir1 = end1 - start1
+            dir2 = end2 - start2
+
+            # 计算直角标记的顶点
+            vertex = start1
+            point1 = vertex + length * dir1 / np.linalg.norm(dir1)
+            point2 = vertex + length * dir2 / np.linalg.norm(dir2)
+            point3 = vertex + length * dir1 / np.linalg.norm(dir1) + length * dir2 / np.linalg.norm(dir2)
+
+            # 创建直角标记
+            right_angle_marker = Polygon(vertex, point1, point3,point2, color=color, fill_opacity=0.5)
+
+
+            return right_angle_marker
+class GeometryProblemScene1(Scene):
+    def construct(self):
+        biaoti_line1 = Tex(
+            r"质点系在几何问题中的应用",
+            tex_template=myTexTemplate,
+            font_size=60
+        )
+        biaoti_line2 = Tex(
+            r" 秒杀向量比例问题！！！",
+            tex_template=myTexTemplate,
+            font_size=60
+        )
+        biaoti = VGroup(biaoti_line1, biaoti_line2).arrange(DOWN, buff=0.8)
+        biaoti.set_color_by_gradient((YELLOW, PINK))
+        self.play(Write(biaoti))
+        self.wait(1)
+        self.play(FadeOut(biaoti))
+
+
+        # 放大三角形：设置 A, B, C 的位置
+        A = Dot(UP * 1.5, radius=0.05)
+        A_label = Text("A", font_size=20).next_to(A, UP)
+        B = Dot(LEFT * 2, radius=0.05)
+        B_label = Text("B", font_size=20).next_to(B, LEFT)
+        C = Dot(RIGHT * 2, radius=0.05)
+        C_label = Text("C", font_size=20).next_to(C, RIGHT)
+        triangle_abc = Polygon(A.get_center(), B.get_center(), C.get_center(), color=BLUE)
+
+        # 点 D: AB 上满足  $\overrightarrow{AB} = \frac{3}{2}\overrightarrow{AD}$
+        D_coord = B.get_center() + (1 / 3) * (A.get_center() - B.get_center())
+        D = Dot(D_coord, radius=0.05)
+        D_label = Text("D", font_size=20).next_to(D, LEFT*0.8+UP*0.35)
+
+        # 点 E: AC 上满足  $\overrightarrow{AC} = 4\overrightarrow{AE}$
+        E_coord = A.get_center() + (1 / 4) * (C.get_center() - A.get_center())
+        E = Dot(E_coord, radius=0.05)
+        E_label = Text("E", font_size=20).next_to(E.get_center(), RIGHT+UP*0.5)
+
+        # 绘制 BE 和 CD
+        line_be = Line(B.get_center(), E.get_center(),color=TEAL)
+        line_cd = Line(C.get_center(), D.get_center(),color=TEAL)
+
+        # 求 BE 和 CD 的交点 O
+        O_coord = intersection(line_be, line_cd)
+        O = Dot(O_coord, radius=0.05)
+        O_label = Text("O", font_size=20).next_to(O, DOWN*0.02+RIGHT*0.05)
+
+        # 绘制 AO 并延长交 BC 于 F
+        line_ao = Line(A.get_center(), O.get_center(), color=TEAL)
+        line_bc= Line(B.get_center(), C.get_center(), color=TEAL)
+        
+       
+        F_coord = intersection(line_ao, line_bc)
+        F = Dot(F_coord, radius=0.05)
+        line_af = Line(A.get_center(), F_coord, color=TEAL)
+        F_label = Text("F", font_size=20).next_to(F, DOWN*0.5+LEFT*0.3)
+
+        
+
+        # 合并题目公式为两行
+        problem_text_line1 = Tex(
+            r"已知 $D, E$ 分别是 $\triangle ABC$ 边 $AB, AC$ 上的点，且满足 "
+            r"$\overrightarrow{AB} = \frac{3}{2}\overrightarrow{AD}$，"
+            r"$\overrightarrow{AC} = 4\overrightarrow{AE}$，"
+            r"若 $\overrightarrow{AO} = \lambda\overrightarrow{OF}$，则实数 $\lambda$ 的值为（ ）",
+            tex_template=myTexTemplate,
+            font_size=36
+        ).to_edge(UP)
+        problem_text_line1.set_color_by_gradient((YELLOW, PINK))#上下渐变色
+
+        option_a = Tex(r"A.$\frac{7}{3}$", tex_template=myTexTemplate, font_size=42)
+        option_a.set_color_by_gradient(RED, YELLOW)#渐变色
+        
+        option_b = Tex(r"B.$\frac{4}{3}$", tex_template=myTexTemplate, font_size=42)
+        option_b.set_color_by_gradient(RED, YELLOW)#渐变色
+        
+        option_c = Tex(r"C.$\frac{5}{2}$", tex_template=myTexTemplate, font_size=42)
+        option_c.set_color_by_gradient(RED, YELLOW)#渐变色
+        option_d = Tex(r"D.2", tex_template=myTexTemplate, font_size=42)
+        option_d.set_color_by_gradient(RED, YELLOW)#渐变色
+
+        options = VGroup(
+            option_a, option_b, 
+            option_c,  option_d, 
+        ).arrange(buff=2).next_to(problem_text_line1, DOWN, buff=0.4)
+        groupti=VGroup(option_a, option_b, option_c, option_d,problem_text_line1)
+        rectangle = SurroundingRectangle(groupti, color=ORANGE, buff=0.2)
+        
+        # 标记选项
+        grouplabel=VGroup(A_label, B_label, C_label, D_label, E_label, O_label, F_label)
+        # 将几何图形相关对象放入一个组中
+        geom_group = VGroup(
+            triangle_abc, A, B, C,
+            D, E, line_be, line_cd,
+            O, F, line_af
+        )
+        # 将几何图形组放置于选项的下面
+        geom_group.next_to(options, DOWN, buff=1.25)
+        grouplabel.next_to(options, DOWN, buff=0.92)
+
+        # 添加并显示所有对象
+        
+        self.play(Write(problem_text_line1))
+        
+        self.play(Write(options))
+        self.play(Create(geom_group))
+        self.play(Write(grouplabel))
+        self.play(Create(rectangle))
+        grouptizong=VGroup(option_a, option_b, option_c, option_d,problem_text_line1,rectangle )
+        self.play(grouptizong.animate.scale(0.5).to_corner(UR))
+        self.play(geom_group.animate.scale(2),grouplabel.animate.scale(1.9))
+        ###开始讲解质心系方法，文字固定在左上角
+        text_line1 = Tex(
+            r"根据线段比例，赋A、B、C三点质量为3m,6m,1m ",
+            tex_template=myTexTemplate,
+            font_size=29
+        )
+        text_line2 = Tex(
+            r"由等效重心，知F的等效质量为7m ",
+            tex_template=myTexTemplate,
+            font_size=35
+        )
+        text_line3 = Tex(
+            r"$\frac{AO}{OF}=\frac{m_{(F)}}{m_{(A)}}=\frac{7m}{3m}=\frac{7}{3}$ ",
+            tex_template=myTexTemplate,
+            font_size=45
+        )
+        groupjieshi=VGroup(text_line1,text_line2,text_line3).arrange(DOWN,buff=0.8).to_corner(UL) 
+        for text in groupjieshi:
+             text.align_to(groupjieshi, LEFT)
+        groupjieshi.set_color_by_gradient((WHITE, PURPLE))
+        text_n1 = Tex(
+            r"1",
+            tex_template=myTexTemplate,
+            font_size=40,color=ORANGE
+        ).move_to((D_label.get_center()+B_label.get_center())/2)
+        text_n2 = Tex(
+            r"2",
+            tex_template=myTexTemplate,
+            font_size=40,color=ORANGE
+        ).move_to((A_label.get_center()+D_label.get_center())/2)
+        text_n3 = Tex(
+            r"1",
+            tex_template=myTexTemplate,
+            font_size=40,color=ORANGE
+        ).move_to((A_label.get_center()+E_label.get_center())/2)
+        text_n4 = Tex(
+            r"3",
+            tex_template=myTexTemplate,
+            font_size=40,color=ORANGE
+        ).move_to((E_label.get_center()+C_label.get_center())/2)
+        text_n5 = Tex(
+            r"7",
+            tex_template=myTexTemplate,
+            font_size=40,color=ORANGE
+        ).move_to((A_label.get_center()+O_label.get_center())/2+RIGHT*0.5)
+        text_n6 = Tex(
+            r"3",
+            tex_template=myTexTemplate,
+            font_size=40,color=ORANGE
+        ).move_to((F_label.get_center()+O_label.get_center()*3)/4+UP*0.2+LEFT*0.2)
+        
+        self.play(Write(text_line1))
+        self.play(Wait(1))
+        group_n104=VGroup(text_n1,text_n2,text_n3,text_n4)
+        self.play(Write(group_n104))
+
+        text_m1 = Tex(
+            r"(3m)",
+            tex_template=myTexTemplate,
+            font_size=40,color=ORANGE
+        ).move_to(A_label.get_center()+RIGHT*0.8)
+        text_m2 = Tex(
+            r"(6m)",
+            tex_template=myTexTemplate,
+            font_size=40,color=ORANGE
+        ).move_to(B_label.get_center()+RIGHT*0.8+DOWN*0.3)
+        text_m3 = Tex(
+            r"(1m)",
+            tex_template=myTexTemplate,
+            font_size=40,color=ORANGE
+        ).move_to(C_label.get_center()+RIGHT*0.8)
+        text_m4 = Tex(
+            r"(7m)",
+            tex_template=myTexTemplate,
+            font_size=40,color=ORANGE
+        ).move_to(F_label.get_center()+RIGHT*0.8)
+        gropu_m104=VGroup(text_m1,text_m2,text_m3)
+        self.play(Write(gropu_m104))
+        self.play(Write(text_line2))
+        self.play(Wait(1))
+        self.play(Indicate(F_label))
+        self.play(Wait(1))
+        self.play(Write(text_m4))
+        self.play(Write(text_line3))
+        self.play(Indicate(line_af),Write(text_n5),Write(text_n6))
+        self.play(Wait(1))
+        self.play(FocusOn(option_a,color=RED))
+        option_a_SurroundingRectangle = SurroundingRectangle(option_a, color=LIGHT_PINK, buff=0.1)
+        self.play(Create(option_a_SurroundingRectangle))
+        self.clear()
+class GeometryProblemScene2(ThreeDScene):
+    def construct(self):
+
+        
+        # 定义四面体顶点
+        A = np.array([0, 1*2.8, 0])
+        B = np.array([np.sqrt(3)/2*2.8, -1/2*2.8, 0])
+        C = np.array([-np.sqrt(3)/2*2.8, -1/2*2.8, 0])
+        D = np.array([0, 0, np.sqrt(2)*2.8])
+        E = np.array([0, 0, 0])
+        O = np.array([0, 0, np.sqrt(2)/4*2.8])
+        dotO=Dot3D(O, color=WHITE)
+        dotE=Dot3D(E, color=WHITE)
+        # 创建边
+        edges = [
+            Line3D(A, B),  Line3D(A, D), Line3D(B, D)   
+        ]
+        DashedLineAC=DashedLine(A, C, dash_length=0.3).set_color(TEAL)
+        DashedLineBC=DashedLine(B, C, dash_length=0.3).set_color(TEAL)
+        DashedLineDC=DashedLine(D, C, dash_length=0.3).set_color(TEAL)
+        DashedLineDE=DashedLine(D, E, dash_length=0.3).set_color(TEAL)
+        DashedLineCE=DashedLine(C, E, dash_length=0.3).set_color(TEAL)
+        DashedLineBE=DashedLine(B, E, dash_length=0.3).set_color(TEAL)
+        DashedLineAE=DashedLine(A, E, dash_length=0.3).set_color(TEAL)
+        DashedLineOC=DashedLine(C, O, dash_length=0.3).set_color(BLUE)
+        DashedLineOB=DashedLine(B, O, dash_length=0.3).set_color(BLUE)
+        DashedLineOA=DashedLine(A, O, dash_length=0.3).set_color(BLUE)
+        DashedLineOD=DashedLine(D, O, dash_length=0.3).set_color(BLUE)
+        group3dash=VGroup(DashedLineAC,DashedLineBC,DashedLineDC)
+        
+        
+        # 创建顶点标签
+        def vertical_text(text, position, color=WHITE):
+            # 将文本中的每个字符转换为单独的 Text 对象，并沿着 Y 轴旋转 90 度
+            letters = VGroup(*[Text(c, color=color).rotate(PI/2, axis=RIGHT) for c in text])
+            # 将这些字符按垂直方向排列，并设置字符之间的间距
+            letters.arrange(DOWN, buff=0.05).move_to(position)
+            return letters
+        
+        labels = [
+            Text("A").move_to(A + np.array([0, 0.2, 0])).rotate(PI/2, axis=RIGHT).rotate(PI*0.75, axis=OUT).scale(0.5),
+            Text("B").move_to(B + np.array([0.2, -0.2, 0])).rotate(PI/2, axis=RIGHT).rotate(PI*0.75, axis=OUT).scale(0.5),
+            Text("C").move_to(C + np.array([0, 0.3 ,0])).rotate(PI/2, axis=RIGHT).rotate(PI*0.75, axis=OUT).scale(0.5),
+            Text("D").move_to(D + np.array([0, 0, 0.2])).rotate(PI/2, axis=RIGHT).rotate(PI*0.75, axis=OUT).scale(0.5),
+            
+        ]
+        labelE = Text("E").move_to(E + np.array([0.2, 0, -0.2])).rotate(PI/2, axis=RIGHT).rotate(PI*0.75, axis=OUT).scale(0.5)
+        labelO = Text("O").move_to(O + np.array([0.2, 0, 0])).rotate(PI/2, axis=RIGHT).rotate(PI*0.75, axis=OUT).scale(0.5)
+      
+        self.set_camera_orientation(phi=75*DEGREES, theta=10*DEGREES,zoom=0.9, focal_distance = 100)#大于1为放大
+        
+        self.begin_ambient_camera_rotation(rate=PI/40, about="theta") 
+        group6line=VGroup(*edges, group3dash)
+        self.play( SpinInFromNothing(group6line, angle=3 * np.pi / 2, point_color=BLUE), run_time=2)
+        self.add( *labels)
+        self.play(Create(DashedLineDE),Create(DashedLineCE),Create(DashedLineBE),Create(DashedLineAE))
+        self.play(Create(dotE))
+        self.play(Write(labelE))
+        self.wait(2)
+        self.play(Create(DashedLineOC),Create(DashedLineOB),Create(DashedLineOA),Create(DashedLineOD))
+        self.stop_ambient_camera_rotation()
+        self.play(Create(dotO))
+        self.play(Write(labelO))
+        
+        
+        # 创建自定义的三维直角标记
+        DashedLineED=DashedLine(E, D, dash_length=0.3).set_color(TEAL)
+        DashedLineEA=DashedLine(E, A, dash_length=0.3).set_color(TEAL)
+        
+
+        # 创建并添加自定义的三维直角标记
+        right_angle_marker = create_right_angle(DashedLineED, DashedLineEA)
+        self.play(Create(right_angle_marker))
+        A3D_line1 = Tex(
+            r"令正四面体边长为a,则$AE=\frac{\sqrt{3}}{3}$",
+            tex_template=myTexTemplate,
+            font_size=36
+        )
+        A3D_line2 = Tex(
+            r"则正四面体的高,$DE=\sqrt{DA^{2}-AE^{2}}=\frac{\sqrt{6}a}{3}$",
+            tex_template=myTexTemplate,
+            font_size=36
+        )
+        A3D_line3 = Tex(
+            r"由于对称性,可赋A、B、C、D的质量均为m",
+            tex_template=myTexTemplate,
+            font_size=36
+        )
+        A3D_line4 = Tex(
+            r"则E的等效质量为3m,$\frac{DO}{OE}=\frac{m_{(E)}}{m_{(D)}}=\frac{3}{1}$",
+            tex_template=myTexTemplate,
+            font_size=36
+        )
+        A3D_line5 = Tex(
+            r"则O为外心,$R_{\text{外心}}=OD=\frac{3}{4}DE=\frac{\sqrt{6}a}{4}$",
+            tex_template=myTexTemplate,
+            font_size=36
+        )
+        A3D_line6 = Tex(
+            r"则O为内心,$R_{\text{内心}}=OE=\frac{1}{4}DE=\frac{\sqrt{6}a}{12}$",
+            tex_template=myTexTemplate,
+            font_size=36
+        )
+        texm1= Tex(
+            r"(m)",
+            tex_template=myTexTemplate,
+            font_size=36,color=ORANGE
+        ).rotate(PI/2, axis=RIGHT).rotate(PI*0.75, axis=OUT)
+        texm2= Tex(
+            r"(m)",
+            tex_template=myTexTemplate,
+            font_size=36,color=ORANGE
+        ).rotate(PI/2, axis=RIGHT).rotate(PI*0.75, axis=OUT)
+        texm3= Tex(
+            r"(m)",
+            tex_template=myTexTemplate,
+            font_size=36,color=ORANGE
+        ).rotate(PI/2, axis=RIGHT).rotate(PI*0.75, axis=OUT)
+        texm4= Tex(
+            r"(m)",
+            tex_template=myTexTemplate,
+            font_size=36,color=ORANGE
+        ).rotate(PI/2, axis=RIGHT).rotate(PI*0.75, axis=OUT)
+        texm5= Tex(
+            r"(3m)",
+            tex_template=myTexTemplate,
+            font_size=36,color=ORANGE
+        ).rotate(PI/2, axis=RIGHT).rotate(PI*0.75, axis=OUT)
+        texm1.next_to(labels[0],LEFT)
+        texm2.next_to(labels[1],RIGHT)
+        texm3.next_to(labels[2],LEFT)
+        texm4.next_to(labels[3],LEFT)
+        texm5.next_to(labelE,LEFT).shift(IN*0.5)
+        
+
+        A3D_line1.set_color_by_gradient((YELLOW, PINK))#上下渐变色
+        A3D_line2.set_color_by_gradient((YELLOW, PINK))#上下渐变色
+        A3D_line3.set_color_by_gradient((YELLOW, PINK))#上下渐变色
+        A3D_line4.set_color_by_gradient((YELLOW, PINK)) #上下渐变色
+        A3D_line5.set_color_by_gradient((YELLOW, PINK)) #上下渐变色
+        A3D_line6.set_color_by_gradient((YELLOW, PINK)) #上下渐变色
+    
+        
+        point_2dA= self.camera.project_point(A)
+        point_2dB= self.camera.project_point(B)
+        point_2dE= self.camera.project_point(E)
+        point_2dO= self.camera.project_point(O)
+        point_2dD= self.camera.project_point(D)
+        point_2dC= self.camera.project_point(C)
+
+        dot_2dA= Dot(point_2dA, color=BLUE)
+        self.add_fixed_in_frame_mobjects(dot_2dA)
+        self.add(dot_2dA)
+        dot_2dB= Dot(point_2dB, color=BLUE)
+        self.add_fixed_in_frame_mobjects(dot_2dB)
+        self.add(dot_2dB)
+        dot_2dE= Dot(point_2dE, color=BLUE)
+        self.add_fixed_in_frame_mobjects(dot_2dE)
+        self.add(dot_2dE)
+        dot_2dO= Dot(point_2dO, color=BLUE)
+        self.add_fixed_in_frame_mobjects(dot_2dO)
+        self.add(dot_2dO)
+        dot_2dD= Dot(point_2dD, color=BLUE)
+        self.add_fixed_in_frame_mobjects(dot_2dD)
+        self.add(dot_2dD)
+        dot_2dC= Dot(point_2dC, color=BLUE)
+        self.add_fixed_in_frame_mobjects(dot_2dC)
+        self.add(dot_2dC)
+
+        # 创建并添加固定在屏幕上的三角形
+        triangleABE2D = Polygon(point_2dA, point_2dB, point_2dE, fill_color=ORANGE, fill_opacity=0.2)
+        triangleABE3D = Polygon(A, B, E, fill_color=ORANGE, fill_opacity=0)
+        self.add_fixed_in_frame_mobjects(triangleABE2D)
+        self.play(Indicate(triangleABE2D))
+        triangleABE_copy=triangleABE3D.copy()
+        self.add_fixed_in_frame_mobjects(triangleABE_copy)
+        triangleABE_copy.rotate(-PI*2/3, axis=OUT).move_to(DOWN*2.5).set_opacity(0)
+        self.play(Transform(triangleABE2D,triangleABE_copy.set_opacity(0)),FadeIn(triangleABE_copy.set_opacity(0.2)))
+
+      
+        TEXTA3D_2D=Text("A")
+        TEXTB3D_2D=Text("B")
+        TEXTE3D_2D=Text("E")
+        TEXT30jiaodu=Text("30°")
+        lineright1= Tex(
+         r"$AE=\frac{AB}{2}\times\frac{1}{\cos30^{\circ}}=\frac{\sqrt{3}a}{3}$",
+         tex_template=myTexTemplate,
+         font_size=42
+        )
+        lineright1.set_color_by_gradient((YELLOW, PINK)).set_opacity(0)#上下渐变色
+        self.add_fixed_in_frame_mobjects(TEXTA3D_2D,TEXTB3D_2D,TEXTE3D_2D,TEXT30jiaodu,lineright1)
+      
+        TEXT30jiaodu.move_to(DOWN*(2.5+2.8/4-0.2)+RIGHT*(np.sqrt(3)/2*3-1.2)).scale(0.5)                           
+        TEXTE3D_2D.move_to(DOWN*1.5).scale(0.4)
+        TEXTB3D_2D.move_to(DOWN*(1.7+0.5*2.8)+LEFT*np.sqrt(3)/2*3).scale(0.5)
+        TEXTA3D_2D.move_to(DOWN*(1.7+0.5*2.8)+RIGHT*np.sqrt(3)/2*3).scale(0.5)
+        lineright1.next_to(TEXTE3D_2D,RIGHT).shift(RIGHT*1.5)
+        self.play(Write(TEXTA3D_2D),Write(TEXTB3D_2D),Write(TEXTE3D_2D))
+        LineAB=Line(A,B)
+        LineAE=Line(A,E)
+        F=(A+B)/2
+        dotF=Dot(F, color=WHITE)
+        F_label=Text("F").move_to(F)
+        dashlinechuizhi= DashedLine(E, (A+B)/2, dash_length=0.3).set_color(TEAL)
+        lineFE=Line(F,E)
+        lineFA=Line(F,A)
+        
+        rightangleFEA=create_right_angle(lineFE, lineFA)
+        angleA=Angle(LineAB,LineAE, radius=0.5, other_angle=True, color=BLUE)
+        groupbiaoji=VGroup(dotF,F_label,dashlinechuizhi,angleA,rightangleFEA)
+        self.add_fixed_in_frame_mobjects(groupbiaoji)
+        dashlinechuizhi.rotate(-PI*2/3, axis=OUT).move_to(DOWN*2.5)
+        angleA.rotate(-PI*2/3, axis=OUT).move_to(DOWN*(2.5+2.8/4-0.1)+RIGHT*(np.sqrt(3)/2*3-0.55))
+        rightangleFEA.rotate(-PI*2/3, axis=OUT).move_to(DOWN*(2.5+2.8/4-0.15)+RIGHT*0.15)
+        dotF.rotate(-PI*2/3, axis=OUT).move_to(DOWN*(2.5+2.8/4))
+        F_label.move_to(DOWN*(2.7+3.5/4)).scale(0.5)
+        self.add(groupbiaoji)
+        self.add(TEXT30jiaodu)
+        
+        self.wait(2)
+        A3D_line=VGroup(A3D_line1,A3D_line2,A3D_line3,A3D_line4,A3D_line5,A3D_line6).set_opacity(0)
+        self.add_fixed_in_frame_mobjects(A3D_line1,A3D_line2,A3D_line3,A3D_line4,A3D_line5,A3D_line6)
+        A3D_line.arrange(DOWN, aligned_edge=LEFT).to_corner(UL).shift(LEFT*1.23+UP*0.9).scale(0.77)
+
+        self.play(Write(A3D_line1.set_opacity(1)))
+        self.play(Write(lineright1.set_opacity(1)))
+        self.play(Write(A3D_line2.set_opacity(1)))
+        self.play(Write(A3D_line3.set_opacity(1)))
+        self.play(Write(texm1),Write(texm2),Write(texm3),Write(texm4))
+        self.play(Write(A3D_line4.set_opacity(1)))
+        self.play(Write(texm5))
+        self.play(Write(A3D_line5.set_opacity(1)))
+        self.play(Write(A3D_line6.set_opacity(1)))
+        ####内切外接球的显示
+       # 定义参数化球体函数
+        def parametric_sphere(u, v):
+            return np.array([
+                np.sin(u) * np.cos(v),
+                np.sin(u) * np.sin(v),
+                np.cos(u)
+            ])
+
+        # 创建内层球体（棋盘样式）
+        shpereneiqie = Surface(
+            parametric_sphere,
+            u_range=[0, PI],
+            v_range=[0, TAU],
+            resolution=(5, 12),
+            fill_opacity=0.05,
+            checkerboard_colors=[RED, ORANGE]  # 使用颜色列表
+        ).scale(np.sqrt(2)*2.8/4).move_to(OUT*np.sqrt(2)*2.8/4)
+
+        # 创建外层球体（棋盘样式）
+        shpereneijie = Surface(
+            parametric_sphere,
+            u_range=[0, PI],
+            v_range=[0, TAU],
+            resolution=(5, 12),
+            fill_opacity=0.02,
+            checkerboard_colors=[BLUE, GREEN]  # 使用颜色列表
+        ).scale(np.sqrt(2)*2.8*3/4).move_to(OUT*np.sqrt(2)*2.8/4)
+        self.play(
+                GrowFromPoint(shpereneiqie, dotO.get_center()),
+            )
+        self.play(
+                GrowFromPoint(shpereneijie, dotO.get_center()),
+            )
+        
+       
+        self.play(FadeOut(shpereneiqie), FadeOut(shpereneijie))
+        self.wait(2)
+
+    

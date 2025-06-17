@@ -1,0 +1,174 @@
+from manim import *
+
+class SinInequalityProof(Scene):
+    def construct(self):
+                # 标题（支持中文）
+        title = Tex(r"\text{切割线放缩证明不等式}", tex_template=TexTemplateLibrary.ctex,color=BLUE).move_to(UP*2)
+
+        # 证明的不等式（支持中文）
+       
+        text_upper = Tex(
+            r"在锐角三角形中： $ 2 < \sin A + \sin B + \sin C \leq \frac{3\sqrt{3}}{2} $",
+            tex_template=TexTemplateLibrary.ctex,color=BLUE
+        )
+        text_upper.next_to(title, DOWN, buff=0.5)
+
+        # 依次呈现动画
+        self.play(Write(title))
+        self.wait(1)
+
+
+        self.play(Write(text_upper))
+        self.wait(1)
+
+        self.play(FadeOut(title,text_upper))
+        self.wait(1)
+
+        # ========== 【第一部分：上界证明（切线放缩）】 ========== 
+        title1 = Tex(r"\textbf{切线放缩证明上界}", tex_template=TexTemplateLibrary.ctex,color=ORANGE).to_edge(UP)
+        explanation1 = Tex(
+            r"对于锐角三角形 $ \triangle ABC $，我们有 $ A + B + C = \pi $",
+            tex_template=TexTemplateLibrary.ctex,color=TEAL
+        ).next_to(title1, DOWN, buff=0.5)
+
+        explanation2 = Tex(
+            r"因 $ \sin x $ 在 $ (0, \frac{\pi}{2}) $ 上为\textbf{凸函数}，"
+            r"使用 $ x = \frac{\pi}{3} $ 处的切线放缩",
+            tex_template=TexTemplateLibrary.ctex,color=TEAL
+        ).next_to(explanation1, DOWN, buff=0.5)
+
+        explanation3 = Tex(
+            r"则有$\sin x \leq \frac{1}{2}x + \frac{\sqrt{3}}{2} - \frac{\pi}{6}$",
+            tex_template=TexTemplateLibrary.ctex,color=TEAL
+        ).next_to(explanation2, DOWN, buff=0.5)
+
+      
+
+        explanation4 = Tex(
+            r"应用于 $ A, B, C $，并利用 $ A + B + C = \pi $，得到：",
+            tex_template=TexTemplateLibrary.ctex,color=TEAL
+        ).next_to(explanation3, DOWN, buff=0.5)
+
+        explanation5 = MathTex(
+            r"\sin A + \sin B + \sin C \leq \frac{3\sqrt{3}}{2}",color=TEAL
+        ).next_to(explanation4, DOWN, buff=0.5)
+
+        self.play(Write(title1))
+        self.wait(1)
+        self.play(Write(explanation1))
+        self.wait(1)
+        self.play(Write(explanation2))
+        self.wait(1)
+        self.play(Write(explanation3))
+        self.wait(1)
+        self.play(Write(explanation4))
+        self.wait(1)
+        self.play(Write(explanation5))
+        self.wait(1)
+        ##self.play(FadeOut(title1,explanation1,explanation2,
+                        #  explanation3,explanation4,explanation5))
+        ##self.wait(1)
+        group1=VGroup(title1, explanation1, explanation2, explanation3, explanation4, explanation5 )
+        
+        self.play(group1.animate.scale(0.4).to_corner(UR))
+        
+
+        # ========== 【第一部分：绘制图像】 ==========
+        axes = Axes(
+            x_range=[0, 3.5, 1],
+            y_range=[-0.5, 1.5, 0.5],
+            axis_config={"color": BLUE}
+        ).add_coordinates()
+
+        sin_curve = axes.plot(lambda x: np.sin(x), color=YELLOW)
+        sin_label = MathTex(r"y = \sin x").next_to(sin_curve, UP)
+
+        tangent_line = axes.plot(lambda x: 0.5 * x + np.sqrt(3) / 2 - np.pi / 6, 
+                                 color=RED, x_range=[0, np.pi / 2])
+        tangent_label = MathTex(r"y = \frac{1}{2}x + \frac{\sqrt{3}}{2} - \frac{\pi}{6}")
+        tangent_label.next_to(tangent_line, UP, buff=0.5)
+
+        self.play(Create(axes))
+        self.wait(1)
+        self.play(Create(sin_curve), Write(sin_label))
+        self.wait(1)
+        self.play(Create(tangent_line), Write(tangent_label))
+        self.wait(2)
+
+        # 清除上界部分
+        self.play(FadeOut( tangent_line, tangent_label, sin_curve, sin_label, axes,group1))
+        self.wait(1)
+
+        # ========== 【第二部分：下界证明（割线放缩）】 ==========
+        title2 = Tex(r"\textbf{割线放缩证明下界}", tex_template=TexTemplateLibrary.ctex,color=ORANGE).to_edge(UP)
+        explanation6 = Tex(
+            r"由于 $ \sin x $ 在 $ (0, \frac{\pi}{2}) $ 上是\textbf{凸函数}，"
+            r"我们使用割线放缩。",
+            tex_template=TexTemplateLibrary.ctex,color=TEAL
+        ).next_to(title2, DOWN, buff=0.5)
+
+        explanation7 = MathTex(
+            r"\sin x > \frac{2x}{\pi}",color=TEAL
+        ).next_to(explanation6, DOWN, buff=0.5)
+
+        explanation8 = Tex(
+            r"应用于 $ A, B, C $，并利用 $ A + B + C = \pi $，得到：",
+            tex_template=TexTemplateLibrary.ctex,color=TEAL
+        ).next_to(explanation7, DOWN, buff=0.5)
+
+        explanation9 = MathTex(
+            r"\sin A + \sin B + \sin C > 2",color=TEAL
+        ).next_to(explanation8, DOWN, buff=0.5)
+
+        self.play(Write(title2))
+        self.wait(1)
+        self.play(Write(explanation6))
+        self.wait(1)
+        self.play(Write(explanation7))
+        self.wait(1)
+        self.play(Write(explanation8))
+        self.wait(1)
+        self.play(Write(explanation9))
+        self.wait(1)
+    
+        group1=VGroup(title2,explanation6,explanation7,explanation8,explanation9 )
+        
+        self.play(group1.animate.scale(0.4).to_corner(UR))
+        
+
+        # ========== 【第二部分：绘制图像】 ==========
+        axes2 = Axes(
+            x_range=[0, 3.5, 1],
+            y_range=[-0.5, 1.5, 0.5],
+            axis_config={"color": BLUE}
+        ).add_coordinates()
+        sin_curve = axes.plot(lambda x: np.sin(x), color=YELLOW)
+        sin_label = MathTex(r"y = \sin x").next_to(sin_curve, UP)
+        
+
+
+        secant_line = axes2.plot(lambda x: 2 * x / np.pi, color=GREEN, x_range=[0, np.pi / 2])
+        secant_label = MathTex(r"y = \frac{2x}{\pi}")
+        secant_label.next_to(secant_line, DOWN, buff=0.5)
+
+        self.play(Create(axes2))
+        self.wait(1)
+        self.play(Create(sin_curve), Write(sin_label))
+        self.wait(1)
+
+        self.play(Create(secant_line), Write(secant_label))
+        self.wait(1)
+
+        # 清除下界部分
+
+        self.play(FadeOut(group1, secant_line, secant_label, axes2,sin_curve,sin_label))
+        self.wait(1)
+
+        # ========== 【最终结论】 ==========
+        final_title = Tex(r"\textbf{结论}", tex_template=TexTemplateLibrary.ctex,color=ORANGE).scale(1.3).move_to(UP*2)
+        final_ineq = Tex(r"\text{对于和为定值均可以尝试切割线放缩}", tex_template=TexTemplateLibrary.ctex,color=BLUE).next_to(final_title, DOWN, buff=2)
+
+        self.play(Write(final_title))
+        self.wait(1)
+        self.play(Write(final_ineq))
+        self.wait(3)

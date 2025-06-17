@@ -1,0 +1,218 @@
+from venv import create
+from manim import *
+import numpy as np
+
+# 自定义 Tex 模板，加载 ctex 包以支持中文
+myTexTemplate = TexTemplate()
+myTexTemplate.add_to_preamble(r"\usepackage{ctex}")
+
+def intersection(line1, line2):
+    # 使用 line.get_start() 和 line.get_end() 获取线段的端点
+    x1, y1 = line1.get_start()[:2]
+    x2, y2 = line1.get_end()[:2]
+    x3, y3 = line2.get_start()[:2]
+    x4, y4 = line2.get_end()[:2]
+
+    denominator = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4)
+    if abs(denominator) < 1e-10:
+        raise Exception("lines do not intersect or are parallel")
+
+    # 计算交点坐标
+    px = ((x1 * y2 - y1 * x2) * (x3 - x4) - (x1 - x2) * (x3 * y4 - y3 * x4)) / denominator
+    py = ((x1 * y2 - y1 * x2) * (y3 - y4) - (y1 - y2) * (x3 * y4 - y3 * x4)) / denominator
+    return np.array([px, py, 0])
+def create_right_angle(line1, line2, length=0.1, color=RED):
+            # 获取线段的起点和终点
+            start1, end1 = line1.get_start_and_end()
+            start2, end2 = line2.get_start_and_end()
+
+            # 计算两个线段的方向向量
+            dir1 = end1 - start1
+            dir2 = end2 - start2
+
+            # 计算直角标记的顶点
+            vertex = start1
+            point1 = vertex + length * dir1 / np.linalg.norm(dir1)
+            point2 = vertex + length * dir2 / np.linalg.norm(dir2)
+            point3 = vertex + length * dir1 / np.linalg.norm(dir1) + length * dir2 / np.linalg.norm(dir2)
+
+            # 创建直角标记
+            right_angle_marker = Polygon(vertex, point1, point3,point2, color=color, fill_opacity=0.5)
+
+
+            return right_angle_marker
+def unit_normal_vector(vec1, vec2, vec3):
+    # 计算向量叉乘
+    normal = np.cross(vec2 - vec1, vec3 - vec1)##21向量,31向量(注意21,31有前后关系之分，再通过右手螺旋确定叉乘方向
+    
+    # 单位化法向量
+    unit_normal = normal / np.linalg.norm(normal) #  计算法向量的单位向量
+    
+    return unit_normal
+config.background_color = WHITE  # 背景设为白色
+class GeometryProblemScene(ThreeDScene):
+    def construct(self):
+        self.set_camera_orientation(phi=70*DEGREES, theta=10*DEGREES,zoom=0.88, focal_distance = 100)#大于1为放大
+        self.begin_ambient_camera_rotation(rate=PI/40, about="theta") 
+        # 定义四面体顶点
+        A = np.array([0, 1*np.sqrt(3)*2/3, 0])
+        B = np.array([np.sqrt(3)/2*np.sqrt(3)*2/3, -1/2*np.sqrt(3)*2/3, 0])
+        C = np.array([-np.sqrt(3)/2*np.sqrt(3)*2/3, -1/2*np.sqrt(3)*2/3, 0])
+        D = np.array([0, 0, np.sqrt(2)*np.sqrt(3)*2/3])
+        E = np.array([0, 0, 0])
+        O = np.array([0, 0, (np.sqrt(2)/4)*np.sqrt(3)*2/3])
+        dashedlineAB = DashedLine(A, B, dash_length=0.1,dashed_ratio=0.5).set_color(TEAL)
+        dashedlineAC = DashedLine(A, C, dash_length=0.1,dashed_ratio=0.5).set_color(TEAL)
+        dashedlineBC = DashedLine(B, C, dash_length=0.1,dashed_ratio=0.5).set_color(TEAL)
+        dashedlineAD = DashedLine(A, D, dash_length=0.1,dashed_ratio=0.5).set_color(TEAL)
+        dashedlineBD = DashedLine(B, D, dash_length=0.1,dashed_ratio=0.5).set_color(TEAL)
+        dashedlineCD = DashedLine(C, D, dash_length=0.1,dashed_ratio=0.5).set_color(TEAL)
+        group1= VGroup(dashedlineAB,dashedlineAC,dashedlineBC,dashedlineAD,dashedlineBD,dashedlineCD)
+        A_copy=A*(1+np.sqrt(6))-np.array([0, 0, 1])
+        B_copy=B*(1+np.sqrt(6))-np.array([0, 0, 1])
+        C_copy=C*(1+np.sqrt(6))-np.array([0, 0, 1])
+        D_copy=D*(1+np.sqrt(6))-np.array([0, 0, 1])
+        
+
+        group2dasi=group1.copy().scale(1+np.sqrt(6), about_point=O)
+        dotA=Dot3D(A, color=BLUE)
+        dotB=Dot3D(B, color=BLUE)
+        dotC=Dot3D(C, color=BLUE)
+        dotD=Dot3D(D, color=BLUE)
+        labelO1 = Tex(r"$O_1$",
+            tex_template=TexTemplateLibrary.ctex,color=BLUE).move_to(A + np.array([0, 0.4, 0])).rotate(PI/2, axis=RIGHT).rotate(PI*0.75, axis=OUT).scale(0.5)
+        labelO2 = Tex(r"$O_2$",
+            tex_template=TexTemplateLibrary.ctex,color=BLUE).move_to(B + np.array([0.4, -0.4, 0])).rotate(PI/2, axis=RIGHT).rotate(PI*0.75, axis=OUT).scale(0.5)
+        labelO3 = Tex(r"$O_3$",
+            tex_template=TexTemplateLibrary.ctex,color=BLUE).move_to(C + np.array([-0.4, -0.4, 0])).rotate(PI/2, axis=RIGHT).rotate(PI*0.75, axis=OUT).scale(0.5)
+        labelO4 = Tex(r"$O_4$",
+            tex_template=TexTemplateLibrary.ctex,color=BLUE).move_to(D + np.array([0, 0, 0.4])).rotate(PI/2, axis=RIGHT).rotate(PI*0.75, axis=OUT).scale(0.5)
+        a1 = np.array([0, 1*np.sqrt(3)*2/3, -1])
+        b1 = np.array([np.sqrt(3)/2*np.sqrt(3)*2/3, -1/2*np.sqrt(3)*2/3, -1])
+        c1 = np.array([-np.sqrt(3)/2*np.sqrt(3)*2/3, -1/2*np.sqrt(3)*2/3, -1])
+        unit_normal_ABD = unit_normal_vector(B, A, D)
+        unit_normal_ACD = unit_normal_vector(C, D, A)
+        unit_normal_BCD = unit_normal_vector(C, B, D)
+        a2 = A + unit_normal_ABD 
+        b2 = B + unit_normal_ABD 
+        d2 = D + unit_normal_ABD 
+        a3 = A + unit_normal_ACD 
+        c3 = C + unit_normal_ACD
+        d3 = D + unit_normal_ACD
+        b4 = B + unit_normal_BCD
+        c4 = C + unit_normal_BCD
+        d4 = D + unit_normal_BCD
+        triangle1 = Polygon(a1, b1, c1, fill_color=BLUE, fill_opacity=0.1, color=BLUE)
+        triangle2 = Polygon(a2, b2, d2, fill_color=BLUE, fill_opacity=0.1, color=BLUE)
+        triangle3 = Polygon(a3, c3, d3, fill_color=BLUE, fill_opacity=0.1, color=BLUE)
+        triangle4 = Polygon(b4, c4, d4, fill_color=BLUE, fill_opacity=0.1, color=BLUE)
+        triangle5 = Polygon(A_copy, B_copy, C_copy, fill_color=BLUE, fill_opacity=0.1, color=BLUE)
+        triangle6 = Polygon(A_copy, B_copy, D_copy, fill_color=BLUE, fill_opacity=0.1, color=BLUE)
+        triangle7 = Polygon(A_copy, C_copy, D_copy, fill_color=BLUE, fill_opacity=0.1, color=BLUE)
+        triangle8 = Polygon(B_copy, C_copy, D_copy, fill_color=BLUE, fill_opacity=0.1, color=BLUE)
+        
+
+        dashedline1=DashedLine(A, a2, dash_length=0.1,dashed_ratio=0.5).set_color(TEAL)
+        dashedline2=DashedLine(B, b2, dash_length=0.1,dashed_ratio=0.5).set_color(TEAL)
+        dashedline4=DashedLine(D, d2, dash_length=0.1,dashed_ratio=0.5).set_color(TEAL)
+        dashedline3=DashedLine(A, a3, dash_length=0.1,dashed_ratio=0.5).set_color(TEAL)
+        dashedline5=DashedLine(C, c3, dash_length=0.1,dashed_ratio=0.5).set_color(TEAL)
+        dashedline6=DashedLine(D, d3, dash_length=0.1,dashed_ratio=0.5).set_color(TEAL)
+        dashedline7=DashedLine(B, b4, dash_length=0.1,dashed_ratio=0.5).set_color(TEAL)
+        dashedline8=DashedLine(C, c4, dash_length=0.1,dashed_ratio=0.5).set_color(TEAL)
+        dashedline9=DashedLine(D, d4, dash_length=0.1,dashed_ratio=0.5).set_color(TEAL)
+        dashedline10=DashedLine(A, a1, dash_length=0.1,dashed_ratio=0.5).set_color(TEAL)
+        dashedline11=DashedLine(B, b1, dash_length=0.1,dashed_ratio=0.5).set_color(TEAL)
+        dashedline12=DashedLine(C, c1, dash_length=0.1,dashed_ratio=0.5).set_color(TEAL)
+
+
+        
+        
+       # 定义参数化球体函数
+        # 定义一个参数化球体的函数
+        def parametric_sphere(u, v):
+            # 返回一个数组，表示球体的坐标
+            return np.array([
+                np.sin(u) * np.cos(v),
+                np.sin(u) * np.sin(v),
+                np.cos(u)
+            ])
+        shpere1 = Surface(
+            parametric_sphere,
+            u_range=[0, PI],
+            v_range=[0, TAU],
+            resolution=(5, 12),
+            fill_opacity=0.1,
+            checkerboard_colors=[BLUE, GREEN]  # 使用颜色列表
+        ).move_to(D)
+        shpere2 = Surface(
+            parametric_sphere,
+            u_range=[0, PI],
+            v_range=[0, TAU],
+            resolution=(5, 12),
+            fill_opacity=0.1,
+            checkerboard_colors=[BLUE, GREEN]  # 使用颜色列表
+        ).move_to(A)
+        shpere3 = Surface(
+            parametric_sphere,
+            u_range=[0, PI],
+            v_range=[0, TAU],
+            resolution=(5, 12),
+            fill_opacity=0.1,
+            checkerboard_colors=[BLUE, GREEN]  # 使用颜色列表
+        ).move_to(B)
+        shpere4 = Surface(
+            parametric_sphere,
+            u_range=[0, PI],
+            v_range=[0, TAU],
+            resolution=(5, 12),
+            fill_opacity=0.1,
+            checkerboard_colors=[BLUE, GREEN]  # 使用颜色列表
+        ).move_to(C)
+
+
+
+
+       
+        self.play(
+                GrowFromPoint(shpere1, D),GrowFromPoint(shpere2, A),GrowFromPoint(shpere3, B),GrowFromPoint(shpere4, C),run_time=1
+            )
+        #三球出现
+        self.play(FadeIn(dotA),FadeIn(dotB),FadeIn(dotC),FadeIn(dotD),run_time=1)
+        self.play(FadeIn(labelO1),FadeIn(labelO2),FadeIn(labelO3),FadeIn(labelO4),run_time=1)
+        self.play(FadeIn(group1),run_time=1)
+       #投影形成大正四面体
+        self.play(Create(dashedline1),Create(dashedline2),Create(dashedline3),Create(dashedline4),Create(dashedline5),Create(dashedline6),Create(dashedline7),Create(dashedline8),Create(dashedline9),Create(dashedline10),Create(dashedline11),Create(dashedline12),run_time=1)
+        self.play(FadeIn(triangle1),FadeIn(triangle2),FadeIn(triangle3),FadeIn(triangle4),run_time=1)
+        self.play(Transform(triangle1, triangle5),Transform(triangle2, triangle6),Transform(triangle3, triangle7),Transform(triangle4, triangle8),run_time=1)
+        self.stop_ambient_camera_rotation()
+        self.play(FadeOut(triangle1),FadeOut(triangle2),FadeOut(triangle3),FadeOut(triangle4),run_time=1)
+        self.play(FadeOut(dashedline1),FadeOut(dashedline2),FadeOut(dashedline3),FadeOut(dashedline4),FadeOut(dashedline5),FadeOut(dashedline6),FadeOut(dashedline7),FadeOut(dashedline8),FadeOut(dashedline9),FadeOut(dashedline10),FadeOut(dashedline11),FadeOut(dashedline12),run_time=1)
+        self.play(FadeIn(group2dasi),run_time=1)
+        
+        self.play(FadeOut(shpere1),FadeOut(shpere2),FadeOut(shpere3),FadeOut(shpere4),run_time=1)
+       
+        self.wait(1)
+        shpere5 = Surface(
+            parametric_sphere,
+            u_range=[0, PI],
+            v_range=[0, TAU],
+            resolution=(5, 12),
+            fill_opacity=0.1,
+            checkerboard_colors=[BLUE, GREEN]  # 使用颜色列表
+        ).move_to(O).scale(np.sqrt(6)/6, about_point=O)
+        shpere6 = Surface(
+            parametric_sphere,
+            u_range=[0, PI],
+            v_range=[0, TAU],
+            resolution=(5, 12),
+            fill_opacity=0.1,
+            checkerboard_colors=[BLUE, GREEN]  # 使用颜色列表
+        ).move_to(O).scale(1+np.sqrt(6)/6, about_point=O)
+        self.play(GrowFromPoint(shpere5, O))
+        self.play(GrowFromPoint(shpere6, O))
+        self.move_camera(phi=90 * DEGREES, theta=20 * DEGREES, run_time=3)
+        
+       
+     
+    

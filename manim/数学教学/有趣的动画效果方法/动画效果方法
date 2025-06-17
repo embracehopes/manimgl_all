@@ -1,0 +1,98 @@
+一.渐进生长
+1.GrowFromPoint 
+2.SpinInFromNothing
+3.GrowArrow
+4.GrowFromCenter 
+5.GrowFromEdge
+二.集合关系
+1.交集：intersection = Intersection(circle, square)
+2.A-B：difference
+3.A+B-（A交B）：Exclusion
+4.A+B：Union
+三.形状匹配
+1.交叉标记：cross
+2.背景标记：backgroundrectangle
+3.矩形标记：surroundrectangle
+4.下划线标记：underline
+四.常用多边形
+1.星星：Star
+五.轨迹类
+1.self.play(MoveAlongPath(d, f), run_time=3)##播放轨迹动画
+2.trace = TracedPath(
+    d.get_center,
+    stroke_color=GREEN,
+    stroke_width=3,
+)
+eg：d = Dot(color=BLUE).shift([-PI, 0, 0])
+trace = TracedPath(
+    d.get_center,
+    stroke_color=PURPLE,
+    stroke_width=2,
+    dissipating_time=1,
+)
+self.add(d, trace)
+
+def move_path(x):
+    return np.array([x, np.sin(x), 0])
+
+f = ParametricFunction(move_path, t_range=(-PI, PI))##曲线函数
+self.play(MoveAlongPath(d, f), run_time=3)
+六.动画更新
+1.MaintainPositionRelativeTo：保持多个 Mobject 之间的相对位置关系
+七.缩放动画
+1.ScaleInPlace：用于原地的缩放强调，侧重于对象大小的改变而位置不变##对点或者不起眼的东西，突出显示使用
+
+2.ShrinkToCenter：侧重于将对象向屏幕中心收缩直至消失，适用于场景转换、元素移除等
+八.相机类
+1.焦点变换：self.play(self.camera.frame.animate.move_to(circle))
+2.相机缩放：self.camera.frame.scale(0.5)##缩放相机视图
+3.移动对象的相机跟随：
+eg：
+# 创建一个移动路径
+path = Line(
+    LEFT * 3,
+    RIGHT * 3,
+    path_arc=PI / -2,
+    color=YELLOW,
+    stroke_width=1,
+)
+
+# 创建一个移动的点
+dot = Dot(color=RED, point=LEFT * 3)
+self.play(Create(dot), Create(path))
+self.wait(0.5)
+self.camera.frame.save_state()
+self.play(self.camera.frame.animate.move_to(dot))
+
+# 让相机跟随点移动
+def update_camera(mob):
+    mob.move_to(dot.get_center())
+
+self.camera.frame.add_updater(update_camera)
+
+# 让点沿着路径移动
+self.play(MoveAlongPath(dot, path))
+self.camera.frame.remove_updater(update_camera)
+
+self.play(Restore(self.camera.frame))
+4.相机中心点：self.camera.frame_center = mob.get_center()
+5.3D相机中心固定物体的方法
+self.set_camera_orientation(
+                phi=75*DEGREES,
+                theta=-45*DEGREES + t * 0.1,  # 轻微旋转视角
+                distance=8,
+                frame_center=new_pos  # 关键：相机中心跟随球体
+            )
+九.字符转换
+TransformMatchingShapes：用于将一个形状转换为另一个形状，保持相似的结构和位置关系。适用于需要强调形状变化的场景。
+eg：self.play(TransformMatchingShapes(shape1, shape2), run_time=2)  # 示例代码
+十.物件类
+1.虚线圆：dashed_circle = DashedVMobject(Circle(radius=2), num_dashes=30)##
+2.括号：b2 = Brace(line, direction=line.copy().rotate(PI/4 ).get_unit_vector())
+get_direction(): 返回从大括号中心指向其尖端的单位向量
+3.角度标记：  tex = MathTex(r"\theta").move_to(
+            Angle(
+                line1, line_moving, radius=0.5 + 3 * SMALL_BUFF, other_angle=False
+            ).point_from_proportion(0.5)
+        )
+表示夹角的弧形的中点坐标。

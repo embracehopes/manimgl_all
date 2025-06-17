@@ -1,0 +1,17 @@
+from manim import *
+
+class LabelRotationAroundParallelAxis(Scene):
+    def construct(self):
+        # 创建标签
+        label = Text("Hello")
+        # 确定旋转轴位置（这里假设旋转轴过点 (2, 0, 0) 且平行于 z 轴）
+        rotation_axis_point = [2, 0, 0]
+        # 将标签移动到合适位置
+        label.move_to([3, 0, 0])
+
+        # 定义旋转轴向量（平行于 z 轴）
+        rotation_axis = Z_AXIS
+
+        # 让标签绕指定轴旋转
+        self.play(Rotate(label, angle=TAU, axis=rotation_axis, about_point=rotation_axis_point, run_time=5))#axis=OUT意思一样
+        self.wait(1)

@@ -1,0 +1,68 @@
+from manim import *
+
+class FunctionRotation(Scene):
+    def construct(self):
+        # 创建左侧坐标轴
+        left_axes = Axes(
+            x_range=[-5, 5],
+            y_range=[-5, 5],
+            x_length=4,
+            y_length=4,
+            axis_config={
+                "include_numbers": True,
+                "tip_length": 0.1  # 让箭头变细
+            },
+            tips=False
+        ).shift(LEFT * 3)
+
+        # 创建右侧坐标轴
+        right_axes = Axes(
+            x_range=[-5, 5],
+            y_range=[-5, 5],
+            x_length=4,
+            y_length=4,
+            axis_config={
+                    "color": RED,  # 轴的颜色
+    "stroke_width": 2,  # 轴的线条宽度
+    "include_ticks": True,  # 是否包含刻度
+    "include_numbers": True,  # 是否显示数字刻度
+    "decimal_number_config": {"num_decimal_places": 1},  # 控制刻度数字的小数位数
+    "tip_length": 0.2,  # 箭头的长度
+    "line_to_number_buff": 0.2,  # 轴线与刻度数字之间的距离
+    "label_direction": DOWN,  # 刻度数字的方向（UP, DOWN, LEFT, RIGHT）
+            },
+        ).shift(RIGHT * 3)
+
+        # 定义左侧函数
+        def left_function(x):
+            return x ** 2
+
+        # 定义右侧函数
+        def right_function(x):
+            return np.sin(x)
+
+        # 在左侧坐标轴上绘制函数
+        left_graph = left_axes.plot(left_function, color=BLUE)
+        # 为左侧函数添加标签
+        left_label = left_axes.get_graph_label(left_graph, label="y = x^2")
+
+        # 在右侧坐标轴上绘制函数
+        right_graph = right_axes.plot(right_function, color=GREEN)
+        # 为右侧函数添加标签
+        right_label = right_axes.get_graph_label(right_graph, label="y = sin(x)")
+
+        # 将坐标轴、函数和标签添加到场景中
+        self.add(left_axes, right_axes, left_graph, right_graph, left_label, right_label)
+        self.wait(1)
+##可以知道旋转的方法是以屏幕坐标为基点
+        # 让左侧函数绕左侧坐标轴原点旋转 45 度
+        self.play(Rotate(left_graph, angle=PI / 4, about_point=left_axes.coords_to_point(0, 0)))
+        # 让左侧函数的标签跟着旋转
+        self.play(Rotate(left_label, angle=PI / 4, about_point=left_axes.coords_to_point(0, 0)))
+
+        # 让右侧函数绕右侧坐标轴原点旋转 45 度
+        self.play(Rotate(right_graph, angle=PI / 4, about_point=right_axes.coords_to_point(0, 0)))
+        # 让右侧函数的标签跟着旋转
+        self.play(Rotate(right_label, angle=PI / 4, about_point=right_axes.coords_to_point(0, 0)))
+
+        self.wait(1)

@@ -1,0 +1,199 @@
+from calendar import c
+from click import group
+from manim import *
+
+class circleincircle(Scene):
+    def construct(self):
+         # 创建数学问题文本
+# 创建数学问题文本
+        problem = Tex(
+            r"$\begin{aligned} "  
+            r"& \text{ 如图,半径为 }1\text{ 的}\odot O_1\text{ 与半径为 }2\text{ 的}\odot O_2\text{ 内切于点 }A,\odot O_1\text{ 沿}\odot O_2\text{ 的圆弧无滑动滚} \\ "
+            r"& \text{动一周.若}\odot O_1\text{ 上一定点 }P\text{ 从 }A\text{ 点出发随着}\odot O_1\text{ 运动而运动 },\text{设点 }P\text{ 轨迹为 }C,\text{则} \\ "
+            r"\end{aligned}$",
+            tex_template=TexTemplateLibrary.ctex,
+            font_size=34,
+            color=WHITE
+        )
+
+        option1 = Tex(
+            r"$\mathrm{A.~}C\text{ 是半径为 }\frac{1}{2}\text{ 的圆}$",
+            tex_template=TexTemplateLibrary.ctex,
+            font_size=34,
+            color=WHITE
+        )
+        option2 = Tex(
+            r"$\mathrm{B.~}C\text{ 是半径为 1 的圆}$",
+            tex_template=TexTemplateLibrary.ctex,
+            font_size=34,
+            color=WHITE
+        )
+        option3 = Tex(
+            r"$\mathrm{C.~}C\text{ 是长度为 2 的线段}$",
+            tex_template=TexTemplateLibrary.ctex,
+            font_size=34,
+            color=WHITE
+        )
+        option4 = Tex(
+            r"$\mathrm{D.~}C\text{ 是长度为 4 的线段}$",
+            tex_template=TexTemplateLibrary.ctex,
+            font_size=34,
+            color=WHITE
+        )
+        problem.add_background_rectangle(color=PINK, opacity=0.5)
+        option1.add_background_rectangle(color=PURPLE_A, opacity=0.3)
+        option2.add_background_rectangle(color=PURPLE_A, opacity=0.3)
+        option3.add_background_rectangle(color=PURPLE_A, opacity=0.3)
+        option4.add_background_rectangle(color=PURPLE_A, opacity=0.3)
+        # 设置文本颜色
+
+        grouptext = VGroup(problem, option1, option2, option3, option4)
+        grouptext.arrange(DOWN, buff=0.35, aligned_edge=LEFT)  # 使用aligned_edge=LEFT确保左对齐
+        grouptext.to_edge(UP+LEFT)  # 移动到左上角
+        
+        # 添加文本到场景
+        self.add(grouptext)
+        
+        # 添加一个简单的图示来说明问题
+        # 创建坐标系
+        axes = Axes(
+            x_range=[-3, 3, 1],
+            y_range=[-3, 3, 1],
+            x_length=6,
+            y_length=6,
+            axis_config={"color": BLUE},
+        ).move_to(RIGHT*3)
+        # 创建两个圆
+        circle_O2 = Circle(radius=2, color=BLUE)
+        circle_O1 = Circle(radius=1, color=RED)
+        
+        # 摆放圆的位置，使其内切
+        #把元素都平移到坐标系中
+        circle_O2.move_to(axes.c2p(0, 0))
+        circle_O1.move_to(axes.c2p(-1, 0))
+        # 标记圆心和切点
+        O1_label = MathTex("O_1", color=RED, font_size=32).next_to(circle_O1.get_center(), DR, buff=0.1)
+        O2_label = MathTex("O_2", color=BLUE, font_size=32).next_to(circle_O2.get_center(), DR, buff=0.1)
+        A_point = Dot( color=GREEN).move_to(axes.c2p(-2, 0))
+        A_label = MathTex("A", color=GREEN).next_to(A_point, LEFT*0.1)
+        
+        P_label = MathTex("(P)", color=YELLOW).next_to(A_label , LEFT*0.1)
+        
+        
+       
+        # 将图示居中放置在问题下方
+        
+        
+        # 添加图示到场景
+        self.add(circle_O2, circle_O1, O1_label, O2_label, A_point, A_label, P_label)
+        
+        #倒计时three，two ，one
+        countdown = Tex("three", font_size=100).move_to(DOWN*2.3)
+        self.play(FadeIn(countdown),run_time=1)
+        self.play(Transform(countdown, Tex("two", font_size=100).move_to(DOWN*2.3)), run_time=1)
+        self.play(Transform(countdown, Tex("one", font_size=100).move_to(DOWN*2.3)), run_time=1)
+        self.play(FadeOut(countdown),FadeOut(P_label))
+        self.wait(1)
+        #添加更新器，让P点在圆上运动,并且随着O1的运动而运动
+        theta_tracker = ValueTracker(PI)
+        point_P = Dot(color=YELLOW).move_to(axes.c2p(-2, 0))
+        label_p= MathTex("P", color=YELLOW).next_to(point_P, UP, buff=0.1)
+        trace = TracedPath(
+                point_P.get_center,
+                stroke_color=GREEN,
+                stroke_width=3,
+            )   
+        point_O1 = Dot(color=RED).move_to(axes.c2p(-1, 0))
+        lineO1P = Line(point_O1.get_center(), point_P.get_center(), color=RED)
+        # 添加更新器函数
+        def update_elements(mob, dt):
+            t = theta_tracker.get_value()
+            # 创建新的圆和标签对象，用于become方法
+            new_circle = Circle(radius=1, color=RED)
+            
+            # 更新动圆位置
+            center_x = np.cos(t)
+            center_y = np.sin(t)
+            new_circle.move_to(axes.c2p(center_x, center_y))
+                    # 使用become更新圆O1
+            circle_O1.become(new_circle)
+            # 更新P点位置
+            p_x = 2*np.cos(t)
+            p_y = 0
+            point_P.move_to(axes.c2p(p_x, p_y))
+            
+            label_p.next_to(point_P, UP, buff=0.1)
+            
+            # 更新O1_label位置
+            O1_label.become(MathTex("O_1", color=RED).next_to(circle_O1.get_center(), DR, buff=0.1))
+            point_O1.become(Dot(color=RED).move_to(axes.c2p(center_x, center_y)))
+            lineO1P.become(Line(point_O1.get_center(), point_P.get_center(), color=RED))
+            # 更新O1_label位置
+            
+            
+            
+        dummy = Mobject( )
+        dummy.add_updater(update_elements)
+        self.add(dummy, trace, point_P, label_p, O1_label, circle_O1, point_O1, lineO1P)
+        
+    
+        self.play(
+            theta_tracker.animate.set_value(PI*1/6),  # 让theta_tracker从0到2π变化
+            run_time=2,  # 增加运行时间使动画更平滑
+            rate_func=smooth  # 使用线性函数保持匀速运动
+        )
+            # 在动画结束后
+              # 显示向量方程推导
+        op_eq1 = MathTex(
+            r"\vec{O_2P} = \vec{O_2O_1} + \vec{O_1P}",
+            font_size=36,
+            color=PURPLE_A
+        )
+        op_eq2 = MathTex(
+            r"= (\cos\theta, \sin\theta) + (\cos( -\theta ), \sin( -\theta))",
+            font_size=36,
+            color=PURPLE_A
+        )
+        op_eq3 = MathTex(
+            r"= (\cos\theta, \sin\theta) + (\cos(\theta), -\sin(\theta))",
+            font_size=36,
+            color=PURPLE_A
+        )
+        op_eq4 = MathTex(
+            r"= (2\cos\theta , 0)",
+            font_size=36,
+            color=PURPLE_A
+        )
+        op_eqs = VGroup(op_eq1, op_eq2, op_eq3, op_eq4).arrange(DOWN, buff=0.35, aligned_edge=LEFT)
+        op_eqs.to_corner(DL)  # 移动到左下角
+        dashlineO1O2 = DashedLine(point_O1.get_center(), circle_O2.get_center(), color=GREEN)
+        dashlineO1 = DashedLine(point_O1.get_center(), point_O1.get_center()+RIGHT,color=GREEN)
+        dashlineO2= DashedLine(circle_O2.get_center(), circle_O2.get_center()+RIGHT*2,color=GREEN)
+        self.play(Create(dashlineO1O2), Create(dashlineO1), Create(dashlineO2))
+        # 添加弧度和标签
+        ArcO1 = Arc(radius=0.3, angle=-TAU/12, color=YELLOW,arc_center=circle_O1.get_center())
+        ArcO1_label = MathTex(r"-\theta", color=YELLOW,font_size=30).next_to(ArcO1, DR, buff=0.05).shift(UP*0.2)
+        self.add(ArcO1, ArcO1_label)
+
+        ArcO2 = Arc(radius=0.3, angle=TAU/12, color=YELLOW, arc_center=circle_O2.get_center())
+        ArcO2_label = MathTex(r"\theta", color=YELLOW, font_size=30).next_to(ArcO2, UR, buff=0.3).shift(DOWN*0.35)
+        self.add(ArcO2, ArcO2_label)
+        self.play(FadeIn(op_eqs))
+        # 删除弧度和标签
+        self.play(FadeOut(ArcO1), FadeOut(ArcO1_label), FadeOut(ArcO2), FadeOut(ArcO2_label), FadeOut(dashlineO1O2), FadeOut(dashlineO1), FadeOut(dashlineO2))
+        self.wait(1)
+        self.play(
+                    theta_tracker.animate.set_value(-PI),  # 让theta_tracker从0到2π变化
+                    run_time=5,  # 增加运行时间使动画更平滑
+                    rate_func=smooth  # 使用线性函数保持匀速运动
+                )
+        # 添加更新器函数        
+        self.wait(1)
+        #indicate r"& \mathrm{D.~}C\text{ 是长度为 4 的线段} "
+        self.play(Indicate(option4, color=YELLOW, scale_factor=1.2), Indicate(trace, color=GREEN, scale_factor=1.2))
+
+        check = Tex(r"$\checkmark$", color=GREEN).scale(3).move_to(option4[0][0].get_center())
+        check.set_color(GREEN)
+        self.play(Write(check))
+        self.wait(1)    
+        dummy.clear_updaters()  # 只需要清除dummy的更新器

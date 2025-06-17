@@ -1,0 +1,103 @@
+from gettext import c2py
+from manim import *
+import numpy as np
+from manim import *
+
+# 定义 create_glow 函数 [7]
+def create_glow(vmobject, rad=1, num_layers=60, color=YELLOW, 
+                base_opacity=0.2, opacity_falloff_rate=300):
+    glow_group = VGroup()
+    for i in range(num_layers):
+        # 略微调整了公式，如果需要可以进行更多控制
+        layer_radius = rad * (1.002**(i**2)) / 400 
+        # 确保透明度不会为负
+        layer_opacity = max(0, base_opacity - i / opacity_falloff_rate) 
+
+        new_circle = Circle(
+            radius=layer_radius,
+            stroke_opacity=0, # 无描边
+            fill_color=color,
+            fill_opacity=layer_opacity
+        )
+        # 确保它居中于vmobject的当前中心
+        new_circle.move_to(vmobject.get_center()) 
+        glow_group.add(new_circle)
+    return glow_group
+
+
+class BasicFollow(ThreeDScene):
+    def construct(self):
+        
+    
+        my_dot = Dot(point=ORIGIN, radius=0.1, color=BLUE)
+        dot_glow = create_glow(my_dot)
+
+        
+     
+        ball = VGroup(my_dot, dot_glow)
+        self.add(ball)
+        
+        # 添加3D坐标轴作为参考
+        axes = ThreeDAxes(
+            x_range=[-4, 4, 1],
+            y_range=[-4, 4, 1],
+            z_range=[0, 6, 1],
+            x_length=6,
+            y_length=6,
+            z_length=6
+        )
+        self.add(axes)
+        def spiral_curve(t):
+            return np.array([
+                2 * np.cos(t),
+                2 * np.sin(t),
+                t/2
+            ])
+            
+        # 创建3D曲线
+        curve_1 = ParametricFunction(
+            lambda t: axes.c2p(*spiral_curve(t)),
+            t_range=[0, 4 * PI],
+            color=BLUE
+        )
+        self.add(curve_1)
+        # 设置初始相机位置
+        self.set_camera_orientation(phi=75*DEGREES, theta=-45*DEGREES, distance=8)
+
+        # 方法1：使用UpdateFromAlphaFunc同时控制物体运动和相机跟随
+        def ball_and_camera_animation(mob, alpha):
+            # 定义螺旋上升路径
+            t = alpha * 4 * PI  # 总共转4π弧度
+              # 上升4个单位
+            
+            # 计算球体新位置
+            x = 2 * np.cos(t)
+            y = 2 * np.sin(t)
+            z =  t/2
+            new_pos = axes.c2p(x, y, z)
+
+            # 更新球体位置
+            ball.move_to(new_pos)
+            
+            # 更新相机，始终跟随球体
+            self.set_camera_orientation(
+                phi=75*DEGREES,
+                theta=-45*DEGREES + t ,  # 轻微旋转视角
+                distance=8,
+                frame_center=new_pos  # 关键：相机中心跟随球体
+            )
+        
+        # 执行跟随动画
+        self.play(
+            UpdateFromAlphaFunc(ball, ball_and_camera_animation),
+            run_time=8,
+            rate_func=linear
+        )
+        
+        self.wait(2)
+        
+
+if __name__ == "__main__":
+    import os
+    # 使用 -ql 而不是 -pqh 来获得低质量快速预览
+    os.system("manim -pql c.py BasicFollow")

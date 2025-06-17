@@ -1,0 +1,120 @@
+from manim import *
+import numpy as np
+
+class FixedFunctionRotation(Scene):
+    def construct(self):
+        # 第一阶段：带逻辑连接的公式推导
+        self.show_formula_derivation()
+        
+        # 第二阶段：函数图像旋转动画
+        self.show_graph_rotation()
+
+    def show_formula_derivation(self):
+        # 推导步骤（文本+公式水平排列）
+        steps = [
+            ("原函数：", 
+             MathTex(r"\frac{x^2}{\sqrt{3}} - xy + 1 = 0", color=BLUE)),
+            
+            ("标准二次曲线形式：", 
+             MathTex(r"Ax^2 + Bxy + Cy^2 + Dx + Ey + F = 0", color=BLUE)),
+            
+            ("消xy项旋转角公式：", 
+             MathTex(r"\cot(2\theta) = \frac{A - C}{B}", color=BLUE)),
+            
+            ("代入参数计算：", 
+             MathTex(r"\cot(2\theta) = \frac{1/\sqrt{3}}{-1} = -\frac{1}{\sqrt{3}}", color=BLUE)),
+            
+            ("解得旋转角度：", 
+             MathTex(r"2\theta = 120^\circ \Rightarrow \theta = 60^\circ", color=BLUE)),
+            
+            ("坐标变换公式：", 
+             VGroup(
+                 MathTex(r"x = \frac{x'}{2} - \frac{\sqrt{3}y'}{2}", color=BLUE),
+                 MathTex(r"y = \frac{\sqrt{3}x'}{2} + \frac{y'}{2}", color=BLUE)
+             ).arrange(DOWN)),
+            
+            ("代入原方程并化简：", 
+             MathTex(r"\frac{x'^2}{2\sqrt{3}} - \frac{y'^2}{\frac{2\sqrt{3}}{3}} = 1", color=RED))
+        ]
+
+        # 动态管理公式布局
+        current_vg = VGroup()
+        for text_str, formula in steps:
+            # 创建水平排列的文本和公式（使用VGroup）
+            text = Text(text_str, font_size=24).set_color(WHITE)
+            group = VGroup(text, formula).arrange(RIGHT, buff=0.2).scale(0.8)
+            
+            # 自动缩放过宽内容
+            if group.width > config.frame_width - 2:
+                formula.scale(0.7)
+                group = VGroup(text, formula).arrange(RIGHT, buff=0.2)
+            
+            # 清屏逻辑
+            if current_vg.height + group.height > config.frame_height - 2:
+                self.play(FadeOut(current_vg))
+                current_vg = VGroup()
+            
+            # 定位并显示
+            if len(current_vg) == 0:
+                group.to_corner(UL, buff=0.5)
+            else:
+                group.next_to(current_vg, DOWN, aligned_edge=LEFT)
+            
+            current_vg.add(group)
+            self.play(
+                FadeIn(text),
+                Write(formula),
+                run_time=1.5
+            )
+            self.wait(1)
+        
+        self.play(FadeOut(current_vg))
+
+    def show_graph_rotation(self):
+        # 创建坐标系
+        axes = Axes(
+            x_range=[-8, 8, 2],
+            y_range=[-8, 8, 2],
+            axis_config={"color": WHITE}
+        ).scale(0.8)
+        
+        # 原函数曲线及标签（固定在右上角）
+        original_curve = ImplicitFunction(
+            lambda x, y: x**2/np.sqrt(3) - x*y + 1,
+            color=BLUE,
+            x_range=[-10,10],
+            y_range=[-10,10]
+        )
+        original_label = MathTex(r"\frac{x^2}{\sqrt{3}} - xy + 1 = 0", 
+                               color=BLUE).scale(0.6).to_corner(UL)
+        
+        # 旋转后曲线及标签
+        rotated_curve = ImplicitFunction(
+            lambda x, y: x**2/(2*np.sqrt(3)) - y**2/(2*np.sqrt(3)/3) - 1,
+            color=RED,
+            x_range=[-10,10],
+            y_range=[-10,10]
+        )
+        rotated_label = MathTex(r"\frac{x'^2}{2\sqrt{3}} - \frac{y'^2}{\frac{2\sqrt{3}}{3}} = 1",
+                              color=RED).scale(0.6).to_corner(UP)
+
+        # 显示初始图形
+        self.play(
+            LaggedStart(
+                Create(axes),
+                Create(original_curve),
+                Write(original_label),
+                lag_ratio=0.5
+            ),
+            run_time=2
+        )
+        self.wait(1)
+
+        # 执行旋转动画（标签同步更新）
+        self.play(
+            Rotate(original_curve, angle=-60*DEGREES, about_point=ORIGIN),
+            ReplacementTransform(original_label, rotated_label),
+            run_time=3,
+            rate_func=smooth
+        )
+        self.wait(3)
