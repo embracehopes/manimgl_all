@@ -1,0 +1,90 @@
+% base.tex - 基础配置文件
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amsfonts,amssymb}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{geometry}
+\usepackage{xcolor}
+\usepackage{framed}
+\usepackage{tcolorbox}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\usepackage{enumitem}
+
+\geometry{left=2.5cm,right=2.5cm,top=2.5cm,bottom=2.5cm}
+
+% 定义颜色
+\definecolor{formalcolor}{RGB}{240,248,255}
+\definecolor{problemcolor}{RGB}{248,248,255}
+\definecolor{jiexicolor}{RGB}{250,250,250}
+
+% 定义标题命令
+\newcommand{\mytitle}[1]{
+    \begin{center}
+        {\LARGE\textbf{#1}}
+    \end{center}
+    \vspace{1cm}
+}
+
+% 定义formal环境
+\newenvironment{formal}
+{
+    \begin{tcolorbox}[colback=formalcolor,colframe=blue!50!black,title=知识要点]
+}
+{
+    \end{tcolorbox}
+}
+
+% 定义problem环境
+\newcounter{problemcounter}
+\newenvironment{problem}
+{
+    \stepcounter{problemcounter}
+    \begin{tcolorbox}[colback=problemcolor,colframe=black!20!white,title=例题 \arabic{problemcounter}]
+}
+{
+    \end{tcolorbox}
+    \vspace{0.5cm}
+}
+
+% 定义jiexi环境
+\newenvironment{jiexi}[1][0]
+{
+    \begin{tcolorbox}[colback=jiexicolor,colframe=green!50!black,title=解析]
+    \textbf{解：}\\
+}
+{
+    \end{tcolorbox}
+}
+
+% 定义其他常用命令
+\newcommand{\classinfo}[4]{
+    % 课程信息命令，暂时为空实现
+}
+
+% 页面设置
+\pagestyle{plain}
+
+% 数学符号设置
+\DeclareMathOperator{\lcm}{lcm}
+% \gcd already defined, so we skip it
+
+% 定义hmwk环境
+\newcounter{hmwkcounter}
+\newenvironment{hmwk}
+{
+    \stepcounter{hmwkcounter}
+    \begin{tcolorbox}[colback=white,colframe=blue!50!black,title=作业 \arabic{hmwkcounter}]
+}
+{
+    \end{tcolorbox}
+    \vspace{0.5cm}
+}
+
+% 定义\sclear命令
+\newcommand{\sclear}{\clearpage}
+
+% 其他自定义命令
+\newcommand{\abs}[1]{\left|#1\right|}
+\newcommand{\norm}[1]{\left\|#1\right\|}
