@@ -1,0 +1,302 @@
+from manimlib import *
+import numpy as np
+
+"""
+3D直角标记功能封装 - 支持填充颜色
+
+主要功能：
+1. create_right_angle_mark: 为两条相交线创建直角标记
+2. create_right_angle_mark_at_point: 在指定点创建直角标记
+3. create_arc_right_angle_mark: 创建弧形直角标记
+
+填充颜色功能：
+- fill_color: 设置填充颜色，None表示不填充
+- fill_opacity: 设置填充透明度 (0-1)
+
+使用示例：
+# 带黄色填充的直角标记
+mark = self.create_right_angle_mark(
+    line1, line2,
+    size=0.4,
+    color=RED,           # 边框颜色
+    fill_color=YELLOW,   # 填充颜色
+    fill_opacity=0.5     # 填充透明度
+)
+
+# 不带填充的直角标记
+mark = self.create_right_angle_mark(
+    line1, line2,
+    size=0.4,
+    color=RED,
+    fill_color=None      # 不填充
+)
+"""
+
+class sphererotating(ThreeDScene):
+    def create_right_angle_mark(self, line1, line2, size=0.3, color=WHITE, stroke_width=2, fill_color=None, fill_opacity=0.3):
+        """
+        在3D空间中为两条相交线创建直角标记
+        
+        Args:
+            line1: 第一条线段 (Line对象)
+            line2: 第二条线段 (Line对象)
+            size: 直角标记的大小
+            color: 直角标记的颜色
+            stroke_width: 线条宽度
+            fill_color: 填充颜色，如果为None则不填充
+            fill_opacity: 填充透明度
+            
+        Returns:
+            VGroup: 包含直角标记的组合对象
+        """
+        # 获取两条线的方向向量
+        direction1 = line1.get_end() - line1.get_start()
+        direction2 = line2.get_end() - line2.get_start()
+        
+        # 标准化方向向量
+        direction1_normalized = direction1 / np.linalg.norm(direction1)
+        direction2_normalized = direction2 / np.linalg.norm(direction2)
+        
+        # 找到交点（假设两条线相交）
+        # 这里简化为使用line1的起点作为交点
+        # 在实际应用中，可能需要计算真正的交点
+        intersection_point = line1.get_start()
+        
+        # 创建直角标记的顶点
+        corner1 = intersection_point + direction1_normalized * size
+        corner2 = intersection_point + direction2_normalized * size
+        corner3 = corner1 + direction2_normalized * size
+        
+        # 创建填充的正方形（如果需要填充）
+        right_angle_mark = VGroup()
+        
+        if fill_color is not None:
+            # 创建填充的正方形
+            fill_square = Polygon(
+                intersection_point,
+                corner1,
+                corner3,
+                corner2,
+                color=fill_color,
+                fill_opacity=fill_opacity,
+                stroke_width=0
+            )
+            right_angle_mark.add(fill_square)
+        
+        # 创建边框线条
+        mark_line1 = Line(intersection_point, corner1, color=color, stroke_width=stroke_width)
+        mark_line2 = Line(intersection_point, corner2, color=color, stroke_width=stroke_width)
+        mark_line3 = Line(corner1, corner3, color=color, stroke_width=stroke_width)
+        mark_line4 = Line(corner2, corner3, color=color, stroke_width=stroke_width)
+        
+        # 添加边框线条
+        right_angle_mark.add(mark_line1, mark_line2, mark_line3, mark_line4)
+        
+        return right_angle_mark
+    
+    def create_right_angle_mark_at_point(self, point, direction1, direction2, size=0.3, color=WHITE, stroke_width=2, fill_color=None, fill_opacity=0.3):
+        """
+        在指定点创建直角标记
+        
+        Args:
+            point: 直角顶点位置 (numpy array)
+            direction1: 第一个方向向量 (numpy array)
+            direction2: 第二个方向向量 (numpy array)
+            size: 直角标记的大小
+            color: 直角标记的颜色
+            stroke_width: 线条宽度
+            fill_color: 填充颜色，如果为None则不填充
+            fill_opacity: 填充透明度
+            
+        Returns:
+            VGroup: 包含直角标记的组合对象
+        """
+        # 标准化方向向量
+        dir1_normalized = direction1 / np.linalg.norm(direction1)
+        dir2_normalized = direction2 / np.linalg.norm(direction2)
+        
+        # 创建直角标记的顶点
+        corner1 = point + dir1_normalized * size
+        corner2 = point + dir2_normalized * size
+        corner3 = corner1 + dir2_normalized * size
+        
+        # 创建直角标记组合
+        right_angle_mark = VGroup()
+        
+        if fill_color is not None:
+            # 创建填充的正方形
+            fill_square = Polygon(
+                point,
+                corner1,
+                corner3,
+                corner2,
+                color=fill_color,
+                fill_opacity=fill_opacity,
+                stroke_width=0
+            )
+            right_angle_mark.add(fill_square)
+        
+        # 创建边框线条
+        mark_line1 = Line(point, corner1, color=color, stroke_width=stroke_width)
+        mark_line2 = Line(point, corner2, color=color, stroke_width=stroke_width)
+        mark_line3 = Line(corner1, corner3, color=color, stroke_width=stroke_width)
+        mark_line4 = Line(corner2, corner3, color=color, stroke_width=stroke_width)
+        
+        # 添加边框线条
+        right_angle_mark.add(mark_line1, mark_line2, mark_line3, mark_line4)
+        
+        return right_angle_mark
+    
+    def create_arc_right_angle_mark(self, point, direction1, direction2, radius=0.3, color=WHITE, stroke_width=2):
+        """
+        创建弧形直角标记（90度弧）
+        
+        Args:
+            point: 直角顶点位置 (numpy array)
+            direction1: 第一个方向向量 (numpy array)
+            direction2: 第二个方向向量 (numpy array)
+            radius: 弧的半径
+            color: 直角标记的颜色
+            stroke_width: 线条宽度
+            
+        Returns:
+            VGroup: 包含弧形直角标记的组合对象
+        """
+        # 标准化方向向量
+        dir1_normalized = direction1 / np.linalg.norm(direction1)
+        dir2_normalized = direction2 / np.linalg.norm(direction2)
+        
+        # 计算法向量来确定弧所在的平面
+        normal = np.cross(dir1_normalized, dir2_normalized)
+        if np.linalg.norm(normal) > 0:
+            normal = normal / np.linalg.norm(normal)
+        else:
+            normal = OUT  # 如果两个方向平行，使用默认法向量
+        
+        # 创建弧形标记
+        # 这里使用多个小线段来近似弧形
+        num_segments = 8
+        arc_points = []
+        
+        for i in range(num_segments + 1):
+            angle = i * PI / (2 * num_segments)  # 90度分成num_segments段
+            direction = np.cos(angle) * dir1_normalized + np.sin(angle) * dir2_normalized
+            arc_point = point + direction * radius
+            arc_points.append(arc_point)
+        
+        # 创建弧线段
+        arc_lines = VGroup()
+        for i in range(len(arc_points) - 1):
+            line_segment = Line(
+                arc_points[i], 
+                arc_points[i + 1], 
+                color=color, 
+                stroke_width=stroke_width
+            )
+            arc_lines.add(line_segment)
+        
+        return arc_lines
+    
+    def find_intersection_3d(self, line1, line2):
+        """
+        计算两条3D线段的交点（辅助函数）
+        注意：这假设两条线确实相交
+        """
+        # 简化实现：返回最近点的中点
+        p1, p2 = line1.get_start(), line1.get_end()
+        p3, p4 = line2.get_start(), line2.get_end()
+        
+        # 这里可以实现更复杂的3D线段交点算法
+        # 暂时返回line1的起点作为交点
+        return p1
+    
+    def construct(self): 
+        # 设置3D相机
+        self.camera.frame.set_euler_angles(
+            theta=70 * DEGREES,
+            phi=60 * DEGREES,
+            gamma=0 * DEGREES
+        )
+        self.camera.frame.set_height(8)
+        
+        # 示例：创建两条垂直的线段
+        line1 = Line(
+            start=np.array([0, 0, 0]),
+            end=np.array([1, 1, 1]),
+            color=YELLOW
+        )
+        
+        line2 = Line(
+            start=np.array([0, 0, 0]),
+            end=np.array([1, 1, -1]),
+            color=BLUE
+        )
+        
+        # 创建传统的方形直角标记（带填充色）
+        square_mark = self.create_right_angle_mark(
+            line1, line2, 
+            size=0.4, 
+            color=RED, 
+            fill_color=YELLOW, 
+            fill_opacity=0.5
+        )
+        
+        # 在指定点创建直角标记（带蓝色填充）
+        point_mark = self.create_right_angle_mark_at_point(
+            point=np.array([1.5, 1.5, 0]),
+            direction1=RIGHT,
+            direction2=UP,
+            size=0.3,
+            color=GREEN,
+            fill_color=BLUE,
+            fill_opacity=0.7
+        )
+        
+        # 创建第二个直角标记（粉色填充）
+        mark2 = self.create_right_angle_mark_at_point(
+            point=np.array([-1, -1, 0]),
+            direction1=np.array([1, 0, 0]),
+            direction2=np.array([0, 1, 0]),
+            size=0.25,
+            color=PURPLE,
+            fill_color=PINK,
+            fill_opacity=0.6
+        )
+        
+        # 显示动画
+        self.play(ShowCreation(line1), ShowCreation(line2))
+        self.wait(0.5)
+        
+        # 显示带填充的直角标记
+        self.play(ShowCreation(square_mark))
+        self.wait(0.5)
+        
+        # 显示其他直角标记
+        self.play(ShowCreation(point_mark))
+        self.wait(0.5)
+        
+        self.play(ShowCreation(mark2))
+        self.wait(0.5)
+        
+        # 创建弧形直角标记（无填充）
+        arc_mark = self.create_arc_right_angle_mark(
+            point=np.array([0, 0, 0]),
+            direction1=RIGHT,
+            direction2=UP,
+            radius=0.5,
+            color=PURPLE
+        )
+        
+        self.play(ShowCreation(arc_mark))
+        self.wait(2)
+
+
+
+if __name__ == "__main__":
+    import os
+    # 运行基础版本
+    os.system("manimgl b_2.py sphererotating")
+    
+    # 如果想运行其他版本，使用以下命令：
+    # os.system("manimgl b.py SphereRollingSimple")
+    # os.system("manimgl b.py SphereRollingAdvanced")

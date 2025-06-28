@@ -1,0 +1,39 @@
+from manimlib import *
+import numpy as np
+
+
+class CustomPathRolling(ThreeDScene):
+    def construct(self):
+        #画一个辉光点
+
+        self.add(ThreeDAxes(
+            x_range=(-5, 5),
+            y_range=(-5, 5),
+            z_range=(-4, 4),
+            height=6,
+            width=6,
+            depth=6
+        ))
+        dot = Dot(
+            point=np.array([1, 1, 0]),
+            color=YELLOW,
+            radius=0.1
+        )
+        self.add(dot)
+        glow_point= GlowDot(radius=0.5, color=YELLOW,glow_factor=1)
+        t_tracker= ValueTracker(0.5)
+
+        glow_point.add_updater(lambda m: m.become(
+            GlowDot(radius=0.5, color=YELLOW,glow_factor=t_tracker.get_value())
+        ))
+        self.add(glow_point)
+        self.play(t_tracker.animate.set_value(5), run_time=1)
+
+if __name__ == "__main__":
+    import os
+    # 运行基础版本
+    os.system("manimgl a.py sphererotating")
+
+    # 如果想运行其他版本，使用以下命令：
+    # os.system("manimgl b.py SphereRollingSimple")
+    # os.system("manimgl b.py SphereRollingAdvanced")

@@ -1,3 +1,21 @@
 用-wt写入透明文件
 用--open渲染输出文件
 default_config.yml文件是修改输出视频的格式的
+透明度不显示跟self.add的顺序有关，被遮到的放前面就显示了
+last_rotation = getattr(mob, '_last_rotation', 0)##给last_rotation一个初始默认值0，这样就可以避免第一次运行时没有_last_rotation属性的错误
+########################相机信息调试
+            theta, phi, gamma = self.camera.frame.get_euler_angles()
+            center = self.camera.frame.get_center()
+            height = self.camera.frame.get_height()
+            
+            print("=" * 50)
+            print("📷 相机信息:")
+            print(f"  θ (theta): {theta/DEGREES:.2f}°")
+            print(f"  φ (phi): {phi/DEGREES:.2f}°")
+            print(f"  γ (gamma): {gamma/DEGREES:.2f}°")
+            print(f"  中心位置: ({center[0]:.2f}, {center[1]:.2f}, {center[2]:.2f})")
+            print(f"  视野高度: {height:.2f}")
+            print("=" * 50)
+#########################
+transform（）不能3D变换成2D
+GlowDot的参数有

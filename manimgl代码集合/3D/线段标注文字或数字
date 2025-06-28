@@ -1,0 +1,305 @@
+from manimlib import *
+import numpy as np
+
+
+class CustomPathRolling(ThreeDScene):
+    def create_line_length_annotation(self, line, annotation_content=None, offset_distance=0.5, font_size=24, color=WHITE):
+        """
+        为线段创建长度标注
+        
+        Args:
+            line: Line对象，要标注的线段
+            annotation_content: 标注内容，可以是：
+                              - None: 自动显示长度数值
+                              - str: 文字字符串
+                              - Tex/TexText/Text: Manim文本对象
+            offset_distance: 标注文字距离线段的偏移距离
+            font_size: 标注文字的字体大小（仅当annotation_content为字符串时有效）
+            color: 标注文字的颜色（仅当annotation_content为字符串时有效）
+            
+        Returns:
+            Text/Tex对象: 标注文字对象
+        """
+        # 获取线段的起点和终点
+        start_point = line.get_start()
+        end_point = line.get_end()
+        
+        # 计算线段长度
+        length = np.linalg.norm(end_point - start_point)
+        
+        # 计算线段中点
+        midpoint = (start_point + end_point) / 2
+        
+        # 计算线段方向向量
+        direction = end_point - start_point
+        direction_normalized = direction / np.linalg.norm(direction)
+        
+        # 计算垂直于线段的偏移向量
+        # 在3D空间中，我们需要选择一个合适的偏移方向
+        # 这里选择与线段垂直且在xy平面内的向量
+        if abs(direction_normalized[2]) < 0.9:  # 如果线段不是完全垂直的
+            # 使用叉积计算垂直向量，优先在xy平面内
+            offset_vector = np.cross(direction_normalized, OUT)
+        else:
+            # 如果线段近似垂直，使用右方向作为偏移
+            offset_vector = RIGHT
+            
+        # 标准化偏移向量
+        if np.linalg.norm(offset_vector) > 0:
+            offset_vector = offset_vector / np.linalg.norm(offset_vector)
+        else:
+            offset_vector = UP  # 备用方向
+        
+        # 计算标注位置
+        annotation_position = midpoint + offset_vector * offset_distance
+        
+        # 根据annotation_content的类型创建文字对象
+        if annotation_content is None:
+            # 默认显示长度
+            length_text = Text(
+                f"{length:.0f}",
+                font_size=font_size,
+                color=color
+            )
+        elif isinstance(annotation_content, str):
+            # 字符串类型，创建Text对象
+            length_text = Text(
+                annotation_content,
+                font_size=font_size,
+                color=color
+            )
+        elif hasattr(annotation_content, 'move_to'):
+            # 如果是Manim对象（Tex, TexText, Text等），直接使用
+            length_text = annotation_content
+        else:
+            # 其他类型，转换为字符串
+            length_text = Text(
+                str(annotation_content),
+                font_size=font_size,
+                color=color
+            )
+        
+        # 移动到标注位置
+        length_text.move_to(annotation_position)
+        
+        # 直接返回标注文字，不需要指示线
+        return length_text
+    
+    def create_line_with_annotation(self, start, end, annotation_content=None, line_color=YELLOW, 
+                                  annotation_offset=0.5, annotation_color=WHITE, font_size=24):
+        """
+        创建带有长度标注的线段
+        
+        Args:
+            start: 起点坐标 (numpy array)
+            end: 终点坐标 (numpy array)
+            annotation_content: 标注内容，可以是：
+                               - None: 自动显示长度数值
+                               - str: 文字字符串
+                               - Tex/TexText/Text: Manim文本对象
+            line_color: 线段颜色
+            annotation_offset: 标注偏移距离
+            annotation_color: 标注颜色（仅当annotation_content为字符串时有效）
+            font_size: 标注字体大小（仅当annotation_content为字符串时有效）
+            
+        Returns:
+            VGroup: 包含线段和标注文字的组合对象
+        """
+        # 创建线段
+        line = Line(start, end, color=line_color)
+        
+        # 创建标注
+        annotation = self.create_line_length_annotation(
+            line,
+            annotation_content=annotation_content,
+            offset_distance=annotation_offset,
+            font_size=font_size,
+            color=annotation_color
+        )
+        
+        # 组合线段和标注
+        line_with_annotation = VGroup(line, annotation)
+        
+        return line_with_annotation
+    
+    def construct(self):
+        # 设置相机
+        self.camera.frame.set_euler_angles(
+            theta=70 * DEGREES,
+            phi=60 * DEGREES,
+            gamma=0 * DEGREES
+        )
+        self.camera.frame.set_height(8)
+        
+        # 示例：创建几条不同的线段并标注长度
+        
+        # 水平线段 - 使用默认长度标注
+        horizontal_line = self.create_line_with_annotation(
+            start=np.array([-2, 0, 0]),
+            end=np.array([2, 0, 0]),
+            line_color=YELLOW,
+            annotation_offset=0.5,
+            annotation_color=WHITE
+        )
+        
+        # 垂直线段 - 使用Tex数学公式
+        try:
+            tex_formula = Tex(r"h = 3", color=BLUE, tex_template=TexTemplateLibrary.ctex)
+        except:
+            tex_formula = Tex(r"h = 3", color=BLUE)
+        vertical_line = self.create_line_with_annotation(
+            start=np.array([0, -1.5, 0]),
+            end=np.array([0, 1.5, 0]),
+            annotation_content=tex_formula,
+            line_color=BLUE,
+            annotation_offset=0.5
+        )
+        
+        # 斜线段 - 使用Tex对象
+        try:
+            diagonal_tex = Tex(r"\sqrt{8}", color=RED, tex_template=TexTemplateLibrary.ctex)
+        except:
+            diagonal_tex = Tex(r"\sqrt{8}", color=RED)
+        diagonal_line = self.create_line_with_annotation(
+            start=np.array([-1, -1, 0]),
+            end=np.array([1, 1, 0]),
+            annotation_content=diagonal_tex,
+            line_color=RED,
+            annotation_offset=0.5
+        )
+        
+        # 3D线段 - 使用带单位的Tex公式（英文单位）
+        try:
+            length_tex = Tex(r"L = \sqrt{6} \text{ m}", color=GREEN, tex_template=TexTemplateLibrary.ctex)
+        except:
+            length_tex = Tex(r"L = \sqrt{6} \text{ m}", color=GREEN)
+        line_3d = self.create_line_with_annotation(
+            start=np.array([0, 0, 0]),
+            end=np.array([1, 1, 2]),
+            annotation_content=length_tex,
+            line_color=GREEN,
+            annotation_offset=0.6
+        )
+        
+        # 添加到场景并显示动画
+        self.play(
+            ShowCreation(horizontal_line),
+            ShowCreation(vertical_line),
+            ShowCreation(diagonal_line),
+            ShowCreation(line_3d),
+            run_time=3
+        )
+        
+        self.wait(2)
+        
+        # 演示如何单独为已存在的线段添加标注
+        existing_line = Line(np.array([-2, 2, 1]), np.array([2, -1, 1]), color=PURPLE)
+        
+        # 使用复杂的数学公式作为标注（英文）
+        # 演示不同的向量箭头样式
+        try:
+            # 方法1：使用 \overrightarrow 替代 \vec（更长的箭头）
+            complex_tex = Tex(r"\overrightarrow{AB} = \sqrt{x^2 + y^2 + z^2}", color=PURPLE, tex_template=TexTemplateLibrary.ctex)
+        except:
+            complex_tex = Tex(r"\overrightarrow{AB} = \sqrt{x^2 + y^2 + z^2}", color=PURPLE)
+        annotation = self.create_line_length_annotation(
+            existing_line,
+            annotation_content=complex_tex,
+            offset_distance=0.7
+        )
+        
+        self.play(ShowCreation(existing_line))
+        self.play(ShowCreation(annotation))
+        
+        self.wait(0.5)
+        
+        # 演示其他向量表示方法
+        vector_examples_line = Line(np.array([2, 2, 1]), np.array([4, 0, 1]), color=PINK)
+        
+        # 方法2：使用 \overrightarrow
+        try:
+            vector_tex1 = Tex(r"\overrightarrow{CD}", color=PINK, tex_template=TexTemplateLibrary.ctex)
+        except:
+            vector_tex1 = Tex(r"\overrightarrow{CD}", color=PINK)
+        
+        annotation1 = self.create_line_length_annotation(
+            vector_examples_line,
+            annotation_content=vector_tex1,
+            offset_distance=0.5
+        )
+        
+        self.play(ShowCreation(vector_examples_line))
+        self.play(ShowCreation(annotation1))
+        
+        self.wait(0.5)
+        
+        # 方法3：使用 \longrightarrow（更长的箭头，但不在字母上方）
+        vector_examples_line2 = Line(np.array([-4, 2, 1]), np.array([-2, 0, 1]), color=MAROON)
+        
+        try:
+            vector_tex2 = Tex(r"EF \longrightarrow", color=MAROON, tex_template=TexTemplateLibrary.ctex)
+        except:
+            vector_tex2 = Tex(r"EF \longrightarrow", color=MAROON)
+        
+        annotation2 = self.create_line_length_annotation(
+            vector_examples_line2,
+            annotation_content=vector_tex2,
+            offset_distance=0.5
+        )
+        
+        self.play(ShowCreation(vector_examples_line2))
+        self.play(ShowCreation(annotation2))
+        
+        self.wait(1)
+        
+        # 演示中文Tex的正确使用方法
+        # 方法1：使用ctex模板（推荐）
+        try:
+            # 需要导入TexTemplateLibrary
+            from manimlib.mobject.svg.tex_mobject import TexTemplateLibrary
+            chinese_tex = Tex(r"长度为 $\sqrt{6}$ 米", color=TEAL, tex_template=TexTemplateLibrary.ctex)
+            
+            chinese_line_tex = Line(np.array([-1, -2, -1]), np.array([1, -2, -1]), color=TEAL)
+            annotation_chinese = self.create_line_length_annotation(
+                chinese_line_tex,
+                annotation_content=chinese_tex,
+                offset_distance=0.6
+            )
+            
+            self.play(ShowCreation(chinese_line_tex))
+            self.play(ShowCreation(annotation_chinese))
+            
+        except Exception as e:
+            print(f"ctex模板不可用: {e}")
+            # 方法2：使用字符串方式（备用方案）
+            chinese_line_backup = Line(np.array([-1, -2, -1]), np.array([1, -2, -1]), color=TEAL)
+            chinese_annotation_backup = self.create_line_length_annotation(
+                chinese_line_backup,
+                annotation_content="长度为 √6 米",  # 使用字符串
+                offset_distance=0.6,
+                color=TEAL
+            )
+            
+            self.play(ShowCreation(chinese_line_backup))
+            self.play(ShowCreation(chinese_annotation_backup))
+        
+        # 如果需要中文，使用字符串方式（最稳定的方法）
+        chinese_line = Line(np.array([1, 2, -1]), np.array([3, -1, -1]), color=ORANGE)
+        chinese_annotation = self.create_line_length_annotation(
+            chinese_line,
+            annotation_content="长度: 3.6 米",  # 使用字符串而不是Tex
+            offset_distance=0.6,
+            color=ORANGE
+        )
+        
+        self.play(ShowCreation(chinese_line))
+        self.play(ShowCreation(chinese_annotation))
+        
+        self.wait(2)
+
+
+
+if __name__ == "__main__":
+    import os
+    # 运行线段标注示例
+    os.system("manimgl a.py CustomPathRolling")

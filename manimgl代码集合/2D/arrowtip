@@ -1,0 +1,53 @@
+from manimlib import *
+import numpy as np
+
+class ArrowTipStyleDemo(Scene):
+    def construct(self):
+        # 创建三个不同样式的箭头头部
+        
+        # 样式 0: 三角形 (triangle)
+        arrow1 = ArrowTip(
+            angle=0,
+            width=0.5,
+            length=0.8,
+            fill_color=RED,
+            tip_style=0  # 三角形样式
+        ).move_to(UP * 2)
+        label1 = Text("tip_style=0 (triangle)", font_size=24, color=RED).next_to(arrow1, UP)
+        
+        # 样式 1: 内部平滑 (inner_smooth)
+        arrow2 = ArrowTip(
+            angle=0,
+            width=0.5,
+            length=0.8,
+            fill_color=GREEN,
+            tip_style=1  # 内部平滑样式
+        ).move_to(ORIGIN)
+        label2 = Text("tip_style=1 (inner_smooth)", font_size=24, color=GREEN).next_to(arrow2, UP)
+        
+        # 样式 2: 点状 (dot)
+        arrow3 = ArrowTip(
+            angle=0,
+            width=0.5,
+            length=0.8,
+            fill_color=BLUE,
+            tip_style=2  # 点状样式
+        ).move_to(DOWN * 2)
+        label3 = Text("tip_style=2 (dot)", font_size=24, color=BLUE).next_to(arrow3, UP)
+        
+        # 添加所有元素到场景
+        self.add(arrow1, label1)
+        self.add(arrow2, label2)
+        self.add(arrow3, label3)
+        
+        # 添加标题
+        title = Text("Arrow Tip Styles in ManimGL", font_size=36, color=WHITE)
+        title.to_edge(UP, buff=0.5)
+        self.add(title)
+
+
+
+
+if __name__ == "__main__":
+    import os
+    os.system("manimgl c.py ArrowTipStyleDemo")

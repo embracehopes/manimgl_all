@@ -1,0 +1,128 @@
+from idlelib.idle_test.test_help_about import About
+from manimlib import *
+import numpy as np
+
+
+class CustomPathRolling(ThreeDScene):
+    def construct(self):
+        self.camera.frame.set_euler_angles(
+            theta=60 * DEGREES,
+            phi=30 * DEGREES,
+        )
+        
+        # 创建自定义路径（曲线），需要修改！四次！，点击array，就可以显示了
+        curve = ParametricCurve(
+            lambda t: np.array([
+                0.5 * np.cos(2 * t),
+                0.5 * np.sin(2 * t),
+                0
+            ]),
+            t_range=[-3, 3, 0.01],
+            color=YELLOW
+        )
+
+        self.add(curve)
+
+        # 创建球体
+        sphere = Sphere(radius=0.3, color=GREEN)
+        sphere.set_opacity(0.9)
+        
+        # 添加视觉标记
+
+        sphere.mesh = SurfaceMesh(sphere, resolution=(16, 16))
+        sphere.mesh.set_stroke(PINK, opacity=0.6)
+
+        sphere.add(sphere.mesh)
+        
+        # 沿曲线滚动
+        self.roll_along_curve_with_tracker(sphere, curve)
+        
+        self.wait()
+    
+    def roll_along_curve_with_tracker(self, sphere, curve, run_time=6):
+        """使用ValueTracker实现沿曲线滚动"""
+        radius = 0.3
+        
+        # 创建ValueTracker来跟踪参数t
+        t_tracker = ValueTracker(-3)  # 从t=-3开始
+        
+        def curve_point(t):
+            return np.array([0.5 * np.cos(2 * t), 0.5 * np.sin(2 * t), 0]) 
+
+        def curve_tangent(t):
+            # 曲线的切线向量（归一化）
+            tangent = np.array([-np.sin(2 * t), np.cos(2 * t), 0])
+            return tangent / np.linalg.norm(tangent)
+        
+        def compute_arc_length(t_end):
+            """计算从起点到t_end的弧长"""
+            dt = 0.01
+            arc_length = 0
+            t_current = -3
+            
+            while t_current < t_end:
+                tangent = np.array([-np.sin(2 * t_current), np.cos(2 * t_current), 0])
+                arc_length += np.linalg.norm(tangent) * dt
+                t_current += dt
+            
+            return arc_length
+        
+        def sphere_updater(mob):
+            """球体位置和旋转的更新函数"""
+            # 获取当前参数值
+            t = t_tracker.get_value()
+            
+            # 当前位置
+            position = curve_point(t)
+            
+            # 计算弧长和旋转角度
+            arc_length = compute_arc_length(t)
+            rotation_angle = arc_length / radius
+            
+            # 计算旋转轴
+            current_tangent = curve_tangent(t)
+            rotation_axis = np.cross(current_tangent, OUT)
+            
+
+            rotation_axis = rotation_axis / np.linalg.norm(rotation_axis)
+            
+            # 更新位置
+            mob.move_to(position)
+            
+            # 计算增量旋转
+            last_rotation = getattr(mob, '_last_rotation', 0)
+            delta_rotation = rotation_angle - last_rotation
+            
+            # 应用旋转
+            if abs(delta_rotation) > 1e-6:
+                mob.rotate(
+                    angle=-delta_rotation,
+                    axis=rotation_axis,
+                    about_point=mob.get_center()
+                )
+            
+            mob._last_rotation = rotation_angle
+        
+        # 初始化球体位置和旋转记录
+        sphere._last_rotation = 0
+        sphere.move_to(curve_point(-3))
+        self.add(sphere)
+        
+        # 添加updater
+        sphere.add_updater(sphere_updater)
+        
+        # 执行动画：让t_tracker从-3变化到3
+        self.play(
+            t_tracker.animate.set_value(3),
+            run_time=run_time,
+            rate_func=smooth
+        )
+        
+        # 移除updater
+        sphere.remove_updater(sphere_updater)
+        
+
+       
+if __name__ == "__main__":
+    import os
+    os.system("manimgl b.py CustomShaderTriangle")
