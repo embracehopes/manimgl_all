@@ -1,0 +1,1036 @@
+from cycler import V
+from manimlib import *
+from manimlib.animation import transform
+import numpy as np
+from pyparsing import White
+
+
+class b1(ThreeDScene):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.sphere_radius = 2
+    def create_line_length_annotation(self, line, annotation_content=None, offset_distance=0.5, font_size=32, color=WHITE):
+        """
+        为线段创建长度标注
+        
+        Args:
+            line: Line对象，要标注的线段
+            annotation_content: 标注内容，可以是：
+                              - None: 自动显示长度数值
+                              - str: 文字字符串
+                              - Tex/TexText/Text: Manim文本对象
+            offset_distance: 标注文字距离线段的偏移距离
+            font_size: 标注文字的字体大小（仅当annotation_content为字符串时有效）
+            color: 标注文字的颜色（仅当annotation_content为字符串时有效）
+            
+        Returns:
+            Text/Tex对象: 标注文字对象
+        """
+        # 获取线段的起点和终点
+        start_point = line.get_start()
+        end_point = line.get_end()
+        
+        # 计算线段长度
+        length = np.linalg.norm(end_point - start_point)
+        
+        # 计算线段中点
+        midpoint = (start_point + end_point) / 2
+        
+        # 计算线段方向向量
+        direction = end_point - start_point
+        direction_normalized = direction / np.linalg.norm(direction)
+        
+        # 计算垂直于线段的偏移向量
+        # 在3D空间中，我们需要选择一个合适的偏移方向
+        # 这里选择与线段垂直且在xy平面内的向量
+        if abs(direction_normalized[2]) < 0.9:  # 如果线段不是完全垂直的
+            # 使用叉积计算垂直向量，优先在xy平面内
+            offset_vector = np.cross(direction_normalized, OUT)
+        else:
+            # 如果线段近似垂直，使用右方向作为偏移
+            offset_vector = RIGHT
+            
+        # 标准化偏移向量
+        if np.linalg.norm(offset_vector) > 0:
+            offset_vector = offset_vector / np.linalg.norm(offset_vector)
+        else:
+            offset_vector = UP  # 备用方向
+        
+        # 计算标注位置
+        annotation_position = midpoint + offset_vector * offset_distance
+        
+        # 根据annotation_content的类型创建文字对象
+        if annotation_content is None:
+            # 默认显示长度
+            length_text = Text(
+                f"{length:.0f}",
+                font_size=font_size,
+                color=color
+            )
+        elif isinstance(annotation_content, str):
+            # 字符串类型，创建Text对象
+            length_text = Text(
+                annotation_content,
+                font_size=font_size,
+                color=color
+            )
+        elif hasattr(annotation_content, 'move_to'):
+            # 如果是Manim对象（Tex, TexText, Text等），直接使用
+            length_text = annotation_content
+        else:
+            # 其他类型，转换为字符串
+            length_text = Text(
+                str(annotation_content),
+                font_size=font_size,
+                color=color
+            )
+        
+        # 移动到标注位置
+        length_text.move_to(annotation_position)
+        
+        # 直接返回标注文字，不需要指示线
+        return length_text
+    def create_right_angle_mark(self, line1, line2, size=0.3, color=RED, stroke_width=2, fill_color=None, fill_opacity=0.3):
+        """
+        在3D空间中为两条相交线创建直角标记
+        
+        Args:
+            line1: 第一条线段 (Line对象)
+            line2: 第二条线段 (Line对象)
+            size: 直角标记的大小
+            color: 直角标记的颜色
+            stroke_width: 线条宽度
+            fill_color: 填充颜色，如果为None则不填充
+            fill_opacity: 填充透明度
+            
+        Returns:
+            VGroup: 包含直角标记的组合对象
+        """
+        # 获取两条线的方向向量
+        direction1 = line1.get_end() - line1.get_start()
+        direction2 = line2.get_end() - line2.get_start()
+        
+        # 标准化方向向量
+        direction1_normalized = direction1 / np.linalg.norm(direction1)
+        direction2_normalized = direction2 / np.linalg.norm(direction2)
+        
+        # 找到交点（假设两条线相交）
+        # 这里简化为使用line1的起点作为交点
+        # 在实际应用中，可能需要计算真正的交点
+        intersection_point = line1.get_start()
+        
+        # 创建直角标记的顶点
+        corner1 = intersection_point + direction1_normalized * size
+        corner2 = intersection_point + direction2_normalized * size
+        corner3 = corner1 + direction2_normalized * size
+        
+        # 创建填充的正方形（如果需要填充）
+        right_angle_mark = VGroup()
+        
+        if fill_color is not None:
+            # 创建填充的正方形
+            fill_square = Polygon(
+                intersection_point,
+                corner1,
+                corner3,
+                corner2,
+                color=fill_color,
+                fill_opacity=fill_opacity,
+                stroke_width=stroke_width,
+                stroke_color=color
+            )
+            right_angle_mark.add(fill_square)
+        
+        # 创建边框线条
+        mark_line1 = Line(intersection_point, corner1, color=color, stroke_width=stroke_width)
+        mark_line2 = Line(intersection_point, corner2, color=color, stroke_width=stroke_width)
+        mark_line3 = Line(corner1, corner3, color=color, stroke_width=stroke_width)
+        mark_line4 = Line(corner2, corner3, color=color, stroke_width=stroke_width)
+        
+        # 添加边框线条
+        right_angle_mark.add(mark_line1, mark_line2, mark_line3, mark_line4)
+        
+        return right_angle_mark
+        
+    def create_sphere_with_mesh(self, color=BLUE, opacity=0.9):
+        """创建带网格的球体"""
+        sphere = Sphere(radius=self.sphere_radius, color=color)
+        sphere.set_opacity(opacity)
+        
+        # 添加网格
+        sphere.mesh = SurfaceMesh(sphere, resolution=(16, 16))
+        sphere.mesh.set_stroke(BLUE, opacity=1, width=1)
+        sphere.add(sphere.mesh)
+        
+        return sphere
+    
+    def setup_camera(self):
+        """设置相机位置和角度"""
+        self.camera.frame.set_euler_angles(
+            theta= 110* DEGREES,
+            phi=70 * DEGREES,
+            gamma=0 * DEGREES
+        )
+        self.camera.frame.set_height(30)
+        self.camera.frame.move_to((-0.53, -1.19, 2.48))
+    
+    def create_cylinder_with_caps(self):
+        """创建带顶底面的圆柱"""
+        cylinder = Cylinder(
+            radius=4,
+            height=9,
+            resolution=(32, 16),
+            color=GREEN,
+        )
+        cylinder.shift(OUT * 4.5)
+        cylinder.set_opacity(0.5)
+        
+        # 下底面
+        cylinder_bottom = Circle(radius=4)
+        cylinder_bottom.set_opacity(0.5)
+        cylinder_bottom.set_color(GREEN)
+        cylinder_bottom.move_to(cylinder.get_center() + IN * 4.5)
+        
+        # 上顶面
+        cylinder_top = Circle(radius=4)
+        cylinder_top.set_opacity(0.5)
+        cylinder_top.set_color(GREEN)
+        cylinder_top.move_to(cylinder.get_center() + OUT * 4.5)
+        
+        cylinder.add(cylinder_bottom, cylinder_top)
+        return cylinder
+    
+    def create_paths(self):
+        """创建所有路径"""
+        linetop = Line(
+            start=np.array([0, -8, 2]),
+            end=np.array([0, -2, 2]),
+            color=YELLOW,
+        )
+        
+        linebottom = Line(
+            start=np.array([0, 8, 2]),
+            end=np.array([0, 2, 2]),
+            color=YELLOW,
+        )
+        
+        linetotop = Line(
+            start=np.array([0, -2, 2]),
+            end=np.array([0, -2, 7]),
+            color=YELLOW,
+        )
+
+        curvebottom = ParametricCurve(
+            lambda t: np.array([2*np.cos(t), 2*np.sin(t), 2]),
+            t_range=[-PI, PI, 0.01],
+            color=YELLOW
+        )
+        
+        curvetop = ParametricCurve(
+            lambda t: np.array([2*np.cos(t), 2*np.sin(t), 7]),
+            t_range=[-PI, PI, 0.01],
+            color=YELLOW
+        )
+        
+        return linetop, linebottom, linetotop, curvebottom, curvetop
+    
+    def create_glow_dot(self, position, radius=0.5, color=YELLOW, glow_factor=2):
+        """创建发光点并返回动画"""
+        print(f"创建发光点 - 位置: {position}, 颜色: {color}, 半径: {radius}")
+        
+        # 创建初始发光点
+        glow_point = GlowDot(radius=radius, color=color, glow_factor=0.5)
+        glow_point.move_to(position)
+        glow_point.set_z_index(-1)
+        
+        # 创建跟踪器
+        t_tracker = ValueTracker(0.5)
+        
+        # 添加更新器 - 使用闭包保存参数
+        def glow_updater(mob):
+            current_glow = t_tracker.get_value()
+            new_glow = GlowDot(radius=radius, color=color, glow_factor=current_glow)
+            new_glow.move_to(position)
+            mob.become(new_glow)
+        
+        glow_point.add_updater(glow_updater)
+        self.add(glow_point)
+        
+        print(f"发光点已添加到场景，位置: {glow_point.get_center()}")
+        
+        # 返回动画和清理函数
+        return t_tracker.animate.set_value(glow_factor), lambda: glow_point.clear_updaters()
+
+    def construct(self, run_time_line=3, run_time_totop=2, run_time_curve=4):
+        # 设置相机
+        self.setup_camera()
+        self.camera.frame.set_focal_distance(500)
+        polygon = Polygon(
+            np.array([0, -4, 0]),
+            np.array([0, 4, 0]),
+            np.array([0, 4, 9]),
+            np.array([0, -4, 9]),
+            color=WHITE,
+        )
+        circle_top = Circle(
+            radius=2,
+            stroke_color=RED,
+        ).rotate(PI/2, axis=UP, about_point=ORIGIN).move_to(np.array([0, -2, 7]))
+        circle_bottom = Circle(
+            radius=2,
+            stroke_color=RED,
+        ).rotate(PI/2, axis=UP, about_point=ORIGIN).move_to(np.array([0, 2, 2]))
+        #设置透明
+        circle_top.set_opacity(0)
+        circle_bottom.set_opacity(0)
+        polygon.set_opacity(0)
+        self.play(
+            ShowCreation(circle_bottom),
+            ShowCreation(circle_top),
+            ShowCreation(polygon),
+            run_time=0.5,
+            rate_func=smooth
+        )
+
+
+        # 创建圆柱
+        cylinder = self.create_cylinder_with_caps()
+        
+        # 创建路径
+        linetop, linebottom, linetotop, curvebottom, curvetop = self.create_paths()
+
+        # 创建球体
+        spherebottom = self.create_sphere_with_mesh()
+        spheretop = spherebottom.copy()
+        
+        # 设置球体初始位置（球心高度=球半径，让球的最低点在z=0）
+        spheretop.move_to((0, -8, 2))
+        spherebottom.move_to((0, 8, 2))
+        
+        # 添加到场景
+        self.add( spherebottom, spheretop, cylinder)
+        
+        # 执行动画序列
+        # 沿直线滚动 - 同时进行
+        self.roll_along_line_both_spheres(spherebottom, spheretop, linebottom, linetop, run_time=run_time_line)
+        self.roll_along_line_with_tracker_totop(spheretop, linetotop, run_time=run_time_totop)
+
+        # 沿曲线滚动 - 同时进行
+        self.roll_along_curve_both_spheres(spherebottom, spheretop, curvebottom, curvetop, run_time=run_time_curve)
+        ##############################交割阶段############################################
+        self.play(self.camera.frame.animate.set_euler_angles(
+            theta= 110* DEGREES,
+            phi=70 * DEGREES,
+            gamma=0 * DEGREES
+        ).move_to((-0.20, -0.22, 0.73)),rate_func=smooth
+        )
+
+        circle_top.set_opacity(1)
+        circle_bottom.set_opacity(1)
+        polygon.set_opacity(1)
+        self.play(
+            ShowCreation(circle_bottom),
+            ShowCreation(circle_top),
+            ShowCreation(polygon),
+            run_time=0.5,
+            rate_func=smooth
+        )
+        spherebottom.add(circle_bottom)
+        spheretop.add(circle_top)
+        #######################球体变大阶段##########################
+        self.sphere_scale_up(spheretop, spherebottom, target_radius=2.5, run_time=2)
+        #######################初始计算过程##########################
+        ##移除球体和圆柱
+        ##移除球体和圆柱
+        circle_bottom_final = Circle(
+            radius=2.5,
+            stroke_color=RED,
+        ).rotate(PI/2, axis=UP, about_point=ORIGIN).move_to(np.array([0, 1.5, 2.5]))
+        circle_top_final = Circle(
+            radius=2.5,
+            stroke_color=RED,
+        ).rotate(PI/2, axis=UP, about_point=ORIGIN).move_to(np.array([0, -1.5, 6.5]))
+        fourline= VGroup(
+            Line(np.array([0, -4, 0 ]), np.array([0, 4, 0]), color=YELLOW),
+            Line(np.array([0, 4, 0 ]), np.array([0, 4, 9]), color=YELLOW),
+            Line(np.array([0, 4, 9 ]), np.array([0, -4, 9]), color=YELLOW),
+            Line(np.array([0, -4, 9 ]), np.array([0, -4, 0]), color=YELLOW),
+        )
+        self.play(
+            self.camera.frame.animate.set_euler_angles(
+                theta= -90* DEGREES,
+                phi=86 * DEGREES,
+                gamma=0 * DEGREES
+            ).move_to((-0.25, -0.19, 1.31))
+            ,      run_time=1,
+            rate_func=smooth
+        )
+        self.play(
+            FadeOut(spheretop),
+            FadeOut(spherebottom),
+            FadeOut(cylinder),
+            Transform(polygon, fourline),
+
+            FadeIn(circle_bottom_final),
+            FadeIn(circle_top_final),
+
+            run_time=3,
+            rate_func=linear
+        )
+        # ...existing code...
+        ###############中间加辉光过程##########################
+        # 创建辉光点 - 在俯视角度下创建多个清晰可见的发光点
+        print("当前相机位置:", self.camera.frame.get_center())
+        
+        # 在Y轴方向大幅分离发光点，使其在俯视角度下清晰可见
+        # 底部圆心 - 大幅向前偏移
+        glow_animation_bottom, cleanup_bottom = self.create_glow_dot(np.array([0, 1.5, 2.5]), radius=0.5, color=BLUE, glow_factor=1)
+        # 顶部圆心 - 大幅向后偏移  
+        glow_animation_top, cleanup_top = self.create_glow_dot(np.array([0, -1.5, 6.5]), radius=0.5, color=BLUE, glow_factor=1)
+        # 中心交点 - 保持在中心但增大半径
+        glow_animation_center, cleanup_center = self.create_glow_dot(np.array([0, 0, 4.5]), radius=0.5, color=GREEN, glow_factor=1)
+        
+        # 同时播放所有发光动画
+        self.play(
+            glow_animation_bottom, 
+            glow_animation_top, 
+            glow_animation_center,
+            run_time=0.5,
+            rate_func=smooth
+        )
+        
+        # 清理更新器
+        cleanup_bottom()
+        cleanup_top()
+        cleanup_center()
+
+
+        ##############创建线条########################
+        # 创建线条
+        diagonal = DashedLine(
+        start=np.array([0, -1.5, 2.5]),
+        end=np.array([0, -1.5, 0]),
+        color=BLUE,
+        dash_length=0.3
+    )
+        diagona2 = DashedLine(
+        start=np.array([0, -1.5, 2.5]),
+        end=np.array([0, -4, 2.5]),
+        color=BLUE,
+        dash_length=0.3
+    )
+        diagona3 = DashedLine(
+        start=np.array([0, -1.5, 2.5]),
+        end=np.array([0, 0, 4.5]),
+        color=BLUE,
+        dash_length=0.3
+    )
+        diagona4 = DashedLine(
+        start=np.array([0, -1.5, 2.5]),
+        end=np.array([0, 1.5, 2.5]),
+        color=BLUE,
+        dash_length=0.3
+    )
+        diagona5 = DashedLine(
+        start=np.array([0, 1.5, 6.5]),
+        end=np.array([0, 4, 6.5]),
+        color=BLUE,
+        dash_length=0.3
+    )
+        diagona6 = DashedLine(
+        start=np.array([0, 1.5, 6.5]),
+        end=np.array([0, 1.5, 9]),
+        color=BLUE,
+        dash_length=0.3
+    )
+        diagona7 = DashedLine(
+        start=np.array([0, 1.5, 6.5]),
+        end=np.array([0, 0, 4.5]),
+        color=BLUE,
+        dash_length=0.3
+    )
+        diagona8 = DashedLine(
+        start=np.array([0, 1.5, 6.5]),
+        end=np.array([0, 1.5, 2.5]),
+        color=BLUE,
+        dash_length=0.3
+    )
+        diagonalgroup = VGroup(
+            diagonal,
+            diagona2,
+            diagona3,
+            diagona4,
+            diagona5,
+            diagona6,
+            diagona7,
+            diagona8
+        ).rotate(PI, axis=OUT, about_point=ORIGIN)
+        # 添加到场景
+        self.play(
+            ShowCreation(diagonal),
+            ShowCreation(diagona2),
+            ShowCreation(diagona3),
+            ShowCreation(diagona4),
+            ShowCreation(diagona5),
+            ShowCreation(diagona6),
+            ShowCreation(diagona7),
+            ShowCreation(diagona8)
+        )
+        ###############创建标记##########################
+        # 创建标记
+        markline1 = Line(
+            start=np.array([0, -1.5, 2.5]),
+            end=np.array([0, -1.5, 4]),
+            color=YELLOW,
+            stroke_width=2
+        )
+        markline2 = Line(
+            start=np.array([0, -1.5, 2.5]),
+            end=np.array([0, 4, 2.5]),
+            color=YELLOW,
+            stroke_width=2
+        )
+        mark = self.create_right_angle_mark(markline1, markline2, color=PURPLE, size=0.6, stroke_width=6, fill_color=GREEN, fill_opacity=0.5)
+        # 添加标记到场景
+  
+        self.play(
+            ShowCreation(mark)
+        )
+                        # 创建线段长度标注
+        Tex_r = Tex("r", font_size=24, color=TEAL)
+        Tex_r.fix_in_frame()
+        Tex_r.move_to( 1.4*UP+RIGHT*0.1)
+        self.add(Tex_r)
+        Tex_r_copy= Tex("r", font_size=24, color=TEAL)
+        Tex_r_copy.fix_in_frame()
+        Tex_r_copy.move_to( 0.75*UP+LEFT*0.4)
+        self.add(Tex_r_copy)
+        Tex1 = Tex("8-2r", font_size=24, color=TEAL)
+        Tex1.fix_in_frame()
+        Tex1.move_to( 0.28*UP)
+        self.add(Tex1)
+        Tex2 = Tex("9-2r", font_size=24, color=TEAL)
+        Tex2.fix_in_frame()
+        Tex2.move_to( UP+0.52*RIGHT).rotate(PI/2)
+        self.add(Tex2)
+        Tex3 = Tex("9", font_size=24, color=TEAL)
+        Tex3.fix_in_frame()
+        Tex3.move_to( UP+LEFT*1.5)
+        self.add(Tex3)
+        Tex4 = Tex("8", font_size=24, color=TEAL)
+        Tex4.fix_in_frame()
+        Tex4.move_to(DOWN*0.65)
+        self.add(Tex4)
+        ##$$ (8 - 2r)^2 + (9 - 2r)^2 = (2r)^2 \Rightarrow r = \frac{5}{2} $$
+        Tex5 =Tex("(8 - 2r)^2 + (9 - 2r)^2 = (2r)^2 \\Rightarrow r = \\frac{5}{2}", font_size=30)
+        #七色渐变
+        Tex5.set_color_by_gradient(PURPLE, BLUE, GREEN, YELLOW, ORANGE, RED)
+        Tex5.fix_in_frame()
+        Tex5.move_to( DOWN*1)
+        self.play(
+            Write(Tex5),
+            run_time=2,
+            rate_func=smooth
+        )
+        self.wait(5)
+        ############manim的代码，非manimgl的代码##############
+        ####################################################
+        with tempconfig({"tex_template.tex_compiler_log_file_encoding": "gbk"}): # 或 "gb2312" 或 "cp936"        
+       
+        #\text{一个底面半径为4cm，高为9cm 的圆柱容器（容器壁厚度忽略不计）内有\\两个半径相等的铁球，则铁球半径的最大值为 } \underline{ \quad \frac{5}{2} \quad } \text{ cm.}
+            Tex_title= Tex(
+        r"底面半径为$4cm$，高为$9cm$的圆柱容器(容器壁厚度忽略不计)\\内有两个半径相等的铁球，则铁球半径的最大值为$\underline{\quad\quad\quad\quad}cm$",
+        font_size=45,
+        tex_template=TexTemplateLibrary.ctex
+    
+    )
+        Tex_title.set_color_by_gradient(
+            GREEN, 
+            YELLOW, 
+            RED, 
+            PURPLE,
+            BLUE,
+        )
+        self.play(Create(Tex_title),run_time=2)
+        self.wait(2)
+        ############################################
+        ###################################################
+
+
+
+
+
+
+
+        
+
+     
+    def sphere_scale_up(self, sphere_top, sphere_bottom, target_radius=2.5, run_time=2):
+        """球体变大动画 - 修正版"""
+        t_tracker = ValueTracker(2)
+        
+        # 记录初始位置和初始缩放状态
+        initial_pos_top = sphere_top.get_center()
+        initial_pos_bottom = sphere_bottom.get_center()
+        
+        # 创建新的球体作为基准，避免累积缩放问题
+        base_sphere_top = sphere_top.copy()
+        base_sphere_bottom = sphere_bottom.copy()
+        
+        def sphere_top_updater(mob):
+            current_radius = t_tracker.get_value()
+            scale_factor = current_radius / 2  # 相对于初始半径2的缩放
+            
+            # 从基准球体重新创建，避免累积效应
+            mob.become(base_sphere_top.copy().scale(scale_factor))
+            mob.move_to(initial_pos_top)
+            mob.shift(IN*(current_radius-2) + UP*(current_radius-2))
+        
+        def sphere_bottom_updater(mob):
+            current_radius = t_tracker.get_value()
+            scale_factor = current_radius / 2  # 相对于初始半径2的缩放
+            
+            # 从基准球体重新创建，避免累积效应
+            mob.become(base_sphere_bottom.copy().scale(scale_factor))
+            mob.move_to(initial_pos_bottom)
+            mob.shift(OUT*(current_radius-2) + DOWN*(current_radius-2))
+        
+        # 添加更新器
+        sphere_top.add_updater(sphere_top_updater)
+        sphere_bottom.add_updater(sphere_bottom_updater)
+        
+        self.play(
+            t_tracker.animate.set_value(target_radius),
+            run_time=run_time,
+            rate_func=smooth
+        )
+        
+        # 移除更新器
+        sphere_top.remove_updater(sphere_top_updater)
+        sphere_bottom.remove_updater(sphere_bottom_updater)
+    def _create_rolling_animation(self, sphere, curve_point_func, curve_tangent_func, 
+                                 compute_arc_length_func, start_t, end_t, run_time=8):
+        """通用的滚动动画创建方法"""
+        radius = self.sphere_radius
+        t_tracker = ValueTracker(start_t)
+        
+        def sphere_updater(mob):
+            t = t_tracker.get_value()
+            position = curve_point_func(t)
+            arc_length = compute_arc_length_func(t)
+            rotation_angle = arc_length / radius
+            
+            current_tangent = curve_tangent_func(t)
+            # 根据切线方向确定旋转轴
+            if abs(current_tangent[2]) > 0.5:  # 主要是z方向运动
+                rotation_axis = np.cross(current_tangent, RIGHT)
+            else:  # 主要是xy平面运动
+                rotation_axis = np.cross(current_tangent, OUT)
+            
+            if np.linalg.norm(rotation_axis) > 1e-8:
+                rotation_axis = rotation_axis / np.linalg.norm(rotation_axis)
+            
+            mob.move_to(position)
+            
+            last_rotation = getattr(mob, '_last_rotation', 0)
+            delta_rotation = rotation_angle - last_rotation
+            
+            if abs(delta_rotation) > 1e-8:
+                mob.rotate(
+                    angle=-delta_rotation,
+                    axis=rotation_axis,
+                    about_point=mob.get_center()
+                )
+            
+            mob._last_rotation = rotation_angle
+        
+        # 初始化
+        sphere._last_rotation = 0
+        sphere.move_to(curve_point_func(start_t))
+        sphere.add_updater(sphere_updater)
+        
+        # 执行动画
+        self.play(
+            t_tracker.animate.set_value(end_t),
+            run_time=run_time,
+            rate_func=smooth
+        )
+        
+        sphere.remove_updater(sphere_updater)
+
+    def roll_along_curve_with_tracker_bottom(self, sphere, run_time=8):
+        """底部球体沿曲线滚动"""
+        def curve_point(t):
+            return np.array([2*np.cos(t), 2*np.sin(t), 2])
+
+        def curve_tangent(t):
+            tangent = np.array([-2*np.sin(t), 2*np.cos(t), 0])
+            return tangent / np.linalg.norm(tangent)
+        
+        def compute_arc_length(t_end):
+            dt = 0.01
+            arc_length = 0
+            t_current = 0.5*PI
+            while t_current < t_end:
+                tangent = np.array([-2*np.sin(t_current), 2*np.cos(t_current), 0])
+                arc_length += np.linalg.norm(tangent) * dt
+                t_current += dt
+            return arc_length
+        
+        self._create_rolling_animation(
+            sphere, curve_point, curve_tangent, compute_arc_length,
+            0.5*PI, 2.5*PI, run_time
+        )
+
+    def roll_along_curve_with_tracker_top(self, sphere, run_time=8):
+        """顶部球体沿曲线滚动"""
+        def curve_point(t):
+            return np.array([2*np.cos(t), 2*np.sin(t), 7])
+
+        def curve_tangent(t):
+            tangent = np.array([-2*np.sin(t), 2*np.cos(t), 0])
+            return tangent / np.linalg.norm(tangent)
+        
+        def compute_arc_length(t_end):
+            dt = 0.01
+            arc_length = 0
+            t_current = 1.5*PI
+            while t_current < t_end:
+                tangent = np.array([-2*np.sin(t_current), 2*np.cos(t_current), 0])
+                arc_length += np.linalg.norm(tangent) * dt
+                t_current += dt
+            return arc_length
+        
+        self._create_rolling_animation(
+            sphere, curve_point, curve_tangent, compute_arc_length,
+            1.5*PI, 3.5*PI, run_time
+        )
+
+    def roll_along_line_with_tracker_bottom(self, sphere, run_time=8):
+        """底部球体沿直线滚动"""
+        def curve_point(t):
+            return np.array([0, t, 2])  # 球心高度=球半径
+
+        def curve_tangent(t):
+            return np.array([0, 1, 0])
+        
+        def compute_arc_length(t_end):
+            dt = 0.01
+            arc_length = 0
+            t_current = 8
+            while t_current > t_end:
+                arc_length += dt
+                t_current -= dt
+            return arc_length
+        
+        self._create_rolling_animation(
+            sphere, curve_point, curve_tangent, compute_arc_length,
+            8, 2, run_time
+        )
+
+    def roll_along_line_with_tracker_top(self, sphere, run_time=8):
+        """顶部球体沿直线滚动"""
+        def curve_point(t):
+            return np.array([0, t, 2])  # 球心高度=球半径
+
+        def curve_tangent(t):
+            return np.array([0, 1, 0])
+        
+        def compute_arc_length(t_end):
+            dt = 0.01
+            arc_length = 0
+            t_current = -8
+            while t_current < t_end:
+                arc_length += dt
+                t_current += dt
+            return arc_length
+        
+        self._create_rolling_animation(
+            sphere, curve_point, curve_tangent, compute_arc_length,
+            -8, -2, run_time
+        )
+
+    def roll_along_line_with_tracker_totop(self, sphere, linetotop=None, run_time=8):
+        """球体垂直向上滚动"""
+        def curve_point(t):
+            return np.array([0, -2, t])
+
+        def curve_tangent(t):
+            return np.array([0, 0, 1])  # 垂直向上的切线
+        
+        def compute_arc_length(t_end):
+            dt = 0.01
+            arc_length = 0
+            t_current = 2  # 从z=2开始（球心高度）
+            while t_current < t_end:
+                arc_length += dt
+                t_current += dt
+            return arc_length
+        
+        # 使用自定义的滚动动画，因为旋转轴需要特殊处理
+        radius = self.sphere_radius
+        t_tracker = ValueTracker(2)
+        
+        def sphere_updater(mob):
+            t = t_tracker.get_value()
+            position = curve_point(t)
+            arc_length = compute_arc_length(t)
+            rotation_angle = arc_length / radius
+            
+            # 垂直运动时，旋转轴应该是水平的（RIGHT方向）
+            rotation_axis = RIGHT  # 绕x轴旋转
+            
+            mob.move_to(position)
+            
+            last_rotation = getattr(mob, '_last_rotation', 0)
+            delta_rotation = rotation_angle - last_rotation
+            
+            if abs(delta_rotation) > 1e-8:
+                mob.rotate(
+                    angle=delta_rotation,
+                    axis=rotation_axis,
+                    about_point=mob.get_center()
+                )
+            
+            mob._last_rotation = rotation_angle
+        
+        # 初始化
+        sphere._last_rotation = 0
+        sphere.move_to(curve_point(2))
+        sphere.add_updater(sphere_updater)
+        
+        # 执行动画
+        self.play(
+            t_tracker.animate.set_value(7),
+            run_time=run_time,
+            rate_func=smooth
+        )
+        
+        sphere.remove_updater(sphere_updater)
+
+    def roll_along_line_both_spheres(self, sphere_bottom, sphere_top, line_bottom, line_top, run_time=8):
+        """同时让两个球体沿直线滚动"""
+        radius = 2
+        
+        # 为底部球体创建ValueTracker
+        t_tracker_bottom = ValueTracker(8)
+        # 为顶部球体创建ValueTracker  
+        t_tracker_top = ValueTracker(-8)
+        
+        def curve_point_bottom(t):
+            return np.array([0, t, 2])  # 球心高度=球半径
+            
+        def curve_point_top(t):
+            return np.array([0, t, 2])  # 球心高度=球半径
+
+        def curve_tangent(t):
+            tangent = np.array([0, 1, 0])
+            return tangent / np.linalg.norm(tangent)
+        
+        def compute_arc_length_bottom(t_end):
+            dt = 0.01
+            arc_length = 0
+            t_current = 8
+            while t_current > t_end:
+                tangent = np.array([0, 1, 0])
+                arc_length += np.linalg.norm(tangent) * dt
+                t_current -= dt
+            return arc_length
+            
+        def compute_arc_length_top(t_end):
+            dt = 0.01
+            arc_length = 0
+            t_current = -8
+            while t_current < t_end:
+                tangent = np.array([0, 1, 0])
+                arc_length += np.linalg.norm(tangent) * dt
+                t_current += dt
+            return arc_length
+        
+        def sphere_updater_bottom(mob):
+            t = t_tracker_bottom.get_value()
+            position = curve_point_bottom(t)
+            arc_length = compute_arc_length_bottom(t)
+            rotation_angle = arc_length / radius
+            
+            current_tangent = curve_tangent(t)
+            rotation_axis = np.cross(current_tangent, OUT)
+            rotation_axis = rotation_axis / np.linalg.norm(rotation_axis)
+            
+            mob.move_to(position)
+            
+            last_rotation = getattr(mob, '_last_rotation', 0)
+            delta_rotation = rotation_angle - last_rotation
+            
+            if abs(delta_rotation) > 1e-8:
+                mob.rotate(
+                    angle=delta_rotation,
+                    axis=rotation_axis,
+                    about_point=mob.get_center()
+                )
+            
+            mob._last_rotation = rotation_angle
+            
+        def sphere_updater_top(mob):
+            t = t_tracker_top.get_value()
+            position = curve_point_top(t)
+            arc_length = compute_arc_length_top(t)
+            rotation_angle = arc_length / radius
+            
+            current_tangent = curve_tangent(t)
+            rotation_axis = np.cross(current_tangent, OUT)
+            rotation_axis = rotation_axis / np.linalg.norm(rotation_axis)
+            
+            mob.move_to(position)
+            
+            last_rotation = getattr(mob, '_last_rotation', 0)
+            delta_rotation = rotation_angle - last_rotation
+            
+            if abs(delta_rotation) > 1e-8:
+                mob.rotate(
+                    angle=-delta_rotation,
+                    axis=rotation_axis,
+                    about_point=mob.get_center()
+                )
+            
+            mob._last_rotation = rotation_angle
+        
+        # 初始化球体位置
+        sphere_bottom._last_rotation = 0
+        sphere_bottom.move_to(curve_point_bottom(8))
+        sphere_top._last_rotation = 0
+        sphere_top.move_to(curve_point_top(-8))
+        
+        # 添加updater
+        sphere_bottom.add_updater(sphere_updater_bottom)
+        sphere_top.add_updater(sphere_updater_top)
+        
+        # 同时执行两个动画
+        self.play(
+            t_tracker_bottom.animate.set_value(2),
+            t_tracker_top.animate.set_value(-2),
+            run_time=run_time,
+            rate_func=smooth
+        )
+        
+        # 移除updater
+        sphere_bottom.remove_updater(sphere_updater_bottom)
+        sphere_top.remove_updater(sphere_updater_top)
+
+    def roll_along_curve_both_spheres(self, sphere_bottom, sphere_top, curve_bottom, curve_top, run_time=8):
+        """同时让两个球体沿曲线滚动"""
+        radius = 2
+        
+        # 为底部球体创建ValueTracker
+        t_tracker_bottom = ValueTracker(0.5*PI)
+        # 为顶部球体创建ValueTracker
+        t_tracker_top = ValueTracker(1.5*PI)
+        
+        def curve_point_bottom(t):
+            return np.array([2*np.cos(t), 2*np.sin(t), 2])
+            
+        def curve_point_top(t):
+            return np.array([2*np.cos(t), 2*np.sin(t), 7])
+
+        def curve_tangent(t):
+            tangent = np.array([-2*np.sin(t), 2*np.cos(t), 0])
+            return tangent / np.linalg.norm(tangent)
+        
+        def compute_arc_length_bottom(t_end):
+            dt = 0.01
+            arc_length = 0
+            t_current = 0.5*PI
+            while t_current < t_end:
+                tangent = np.array([-2*np.sin(t_current), 2*np.cos(t_current), 0])
+                arc_length += np.linalg.norm(tangent) * dt
+                t_current += dt
+            return arc_length
+            
+        def compute_arc_length_top(t_end):
+            dt = 0.01
+            arc_length = 0
+            t_current = 1.5*PI
+            while t_current < t_end:
+                tangent = np.array([-2*np.sin(t_current), 2*np.cos(t_current), 0])
+                arc_length += np.linalg.norm(tangent) * dt
+                t_current += dt
+            return arc_length
+        
+        def sphere_updater_bottom(mob):
+            t = t_tracker_bottom.get_value()
+            position = curve_point_bottom(t)
+            arc_length = compute_arc_length_bottom(t)
+            rotation_angle = arc_length / radius
+            
+            current_tangent = curve_tangent(t)
+            rotation_axis = np.cross(current_tangent, OUT)
+            rotation_axis = rotation_axis / np.linalg.norm(rotation_axis)
+            
+            mob.move_to(position)
+            
+            last_rotation = getattr(mob, '_last_rotation', 0)
+            delta_rotation = rotation_angle - last_rotation
+            
+            if abs(delta_rotation) > 1e-8:
+                mob.rotate(
+                    angle=-delta_rotation,
+                    axis=rotation_axis,
+                    about_point=mob.get_center()
+                )
+            
+            mob._last_rotation = rotation_angle
+            
+        def sphere_updater_top(mob):
+            t = t_tracker_top.get_value()
+            position = curve_point_top(t)
+            arc_length = compute_arc_length_top(t)
+            rotation_angle = arc_length / radius
+            
+            current_tangent = curve_tangent(t)
+            rotation_axis = np.cross(current_tangent, OUT)
+            rotation_axis = rotation_axis / np.linalg.norm(rotation_axis)
+            
+            mob.move_to(position)
+            
+            last_rotation = getattr(mob, '_last_rotation', 0)
+            delta_rotation = rotation_angle - last_rotation
+            
+            if abs(delta_rotation) > 1e-8:
+                mob.rotate(
+                    angle=-delta_rotation,
+                    axis=rotation_axis,
+                    about_point=mob.get_center()
+                )
+            
+            mob._last_rotation = rotation_angle
+        
+        # 初始化球体位置
+        sphere_bottom._last_rotation = 0
+        sphere_bottom.move_to(curve_point_bottom(0.5*PI))
+        sphere_top._last_rotation = 0
+        sphere_top.move_to(curve_point_top(1.5*PI))
+        
+        
+        # 添加updater
+        sphere_bottom.add_updater(sphere_updater_bottom)
+        sphere_top.add_updater(sphere_updater_top)
+        
+        # 同时执行两个动画
+        self.play(
+            t_tracker_bottom.animate.set_value(2.5*PI),
+            t_tracker_top.animate.set_value(3.5*PI),
+            run_time=run_time,
+            rate_func=smooth
+        )
+        
+        
+        # 移除updater
+        sphere_bottom.remove_updater(sphere_updater_bottom)
+        sphere_top.remove_updater(sphere_updater_top)
+    
+    
+        
+       
+if __name__ == "__main__":
+    import os
+    os.system("manimgl b.py b1")
