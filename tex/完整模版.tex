@@ -1,0 +1,183 @@
+\documentclass{ctexart}
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{tcolorbox}
+\usepackage{enumitem}
+\usepackage{tikz}
+
+% 引入 tcolorbox 库
+\tcbuselibrary{skins, breakable}
+\usetikzlibrary{shapes.misc}
+
+% 自定义颜色
+\definecolor{myred}{RGB}{237, 28, 36}
+\definecolor{mypink}{RGB}{254, 242, 242}
+\definecolor{mygreen}{RGB}{76, 175, 80}
+\definecolor{mylightgreen}{RGB}{232, 245, 233}
+\definecolor{myblue}{RGB}{33, 150, 243}
+\definecolor{mylightblue}{RGB}{227, 242, 253}
+\definecolor{mygray}{RGB}{158, 158, 158}
+\definecolor{mylightgray}{RGB}{248, 248, 248}
+
+% 公式盒子（红色标签）
+\newtcolorbox{formulaBox}[1]{
+    enhanced,
+    breakable,
+    colback=mypink,
+    colframe=myred,
+    boxrule=0.8pt,
+    arc=2pt,
+    fonttitle=\bfseries\color{white},
+    colbacktitle=myred,
+    attach boxed title to top left={
+        xshift=10pt,
+        yshift=-0.5\tcboxedtitleheight
+    },
+    boxed title style={
+        arc=2pt,
+        boxrule=0pt,
+        overlay={
+            \path[fill=myred] 
+                (frame.north east) -- ++(8pt,-6pt) -- (frame.south east) -- cycle;
+        }
+    },
+    title={#1}
+}
+
+% 例题盒子（绿色标签）
+\newtcolorbox{exampleBox}[1]{
+    enhanced,
+    breakable,
+    colback=mylightgreen,
+    colframe=mygreen,
+    boxrule=0.8pt,
+    arc=2pt,
+    fonttitle=\bfseries\color{white},
+    colbacktitle=mygreen,
+    attach boxed title to top left={
+        xshift=10pt,
+        yshift=-0.5\tcboxedtitleheight
+    },
+    boxed title style={
+        arc=2pt,
+        boxrule=0pt,
+        overlay={
+            \path[fill=mygreen] 
+                (frame.north east) -- ++(8pt,-6pt) -- (frame.south east) -- cycle;
+        }
+    },
+    title={#1}
+}
+
+% 解析盒子（灰色标签）
+\newtcolorbox{analysisBox}[1]{
+    enhanced,
+    breakable,
+    colback=mypink,
+    colframe=mygray,
+    boxrule=0.8pt,
+    arc=2pt,
+    fonttitle=\bfseries\color{white},
+    colbacktitle=mygray,
+    attach boxed title to top left={
+        xshift=10pt,
+        yshift=-0.5\tcboxedtitleheight
+    },
+    boxed title style={
+        arc=2pt,
+        boxrule=0pt,
+        overlay={
+            \path[fill=mygray] 
+                (frame.north east) -- ++(8pt,-6pt) -- (frame.south east) -- cycle;
+        }
+    },
+    title={#1}
+}
+
+% 测验盒子（蓝色标签）
+\newtcolorbox{quizBox}[1]{
+    enhanced,
+    breakable,
+    colback=mylightblue,
+    colframe=myblue,
+    boxrule=0.8pt,
+    arc=2pt,
+    fonttitle=\bfseries\color{white},
+    colbacktitle=myblue,
+    attach boxed title to top left={
+        xshift=10pt,
+        yshift=-0.5\tcboxedtitleheight
+    },
+    boxed title style={
+        arc=2pt,
+        boxrule=0pt,
+        overlay={
+            \path[fill=myblue] 
+                (frame.north east) -- ++(8pt,-6pt) -- (frame.south east) -- cycle;
+        }
+    },
+    title={#1}
+}
+
+\begin{document}
+
+% 公式盒子示例
+\begin{formulaBox}{公式}
+    \begin{enumerate}[label=\Roman*., labelindent=0pt, leftmargin=*, itemsep=8pt]
+        \item 铅直渐近线 $\lim\limits_{x \to x_0^-} f(x) = \pm\infty$ 或 $\lim\limits_{x \to x_0^+} f(x) = \pm\infty$，则称 $l: x=x_0$ 为 $f(x)$ 的铅直渐近线.
+        
+        \item 水平渐近线 $\lim\limits_{x \to -\infty} f(x) = y_0$ 或 $\lim\limits_{x \to +\infty} f(x) = y_0$，则称 $l: y=y_0$ 为 $f(x)$ 的水平渐近线.
+        
+        \item 斜渐近线 $\lim\limits_{x \to \infty} [f(x) - (kx+b)] = 0$，则称 $l: y=kx+b$ 为 $f(x)$ 的斜渐近线. 其中:
+        \begin{center}
+             $\lim\limits_{x \to \infty} [f(x) - kx] = b \Rightarrow \lim\limits_{x \to \infty} \left[\frac{1}{x}(f(x) - kx)\right] = 0 \Rightarrow \lim\limits_{x \to \infty} \frac{f(x)}{x} = k.$
+        \end{center}
+    \end{enumerate}
+\end{formulaBox}
+
+\vspace{1em}
+
+% 例题盒子示例
+\begin{exampleBox}{例题 71}
+    (2025 新 TS 联考) 设曲线 $\Gamma: x^2(x-y) = 2$，则下列叙述正确的是：\underline{\hspace{3cm}}。
+
+    \begin{enumerate}[label=\Alph*., labelindent=0pt, leftmargin=*, itemsep=4pt]
+        \item 曲线 $\Gamma$ 的图象仅在第一、三象限内.
+        \item 曲线 $\Gamma$ 的渐近线为 $y = x$ 和 $y$ 轴.
+        \item 曲线 $\Gamma$ 与曲线 $L: y^2(y-x) = 2$ 关于直线.
+        \item 曲线 $\Gamma$ 与圆 $O: x^2 + y^2 = 2$ 交于 $A, B$ 两点，则线段 $AB$ 的弦长为 $\sqrt{2} + 1$.
+    \end{enumerate}
+\end{exampleBox}
+
+\vspace{1em}
+
+% 解析盒子示例
+\begin{analysisBox}{解析}
+    \textbf{渐近线}
+    
+    易见 $\Gamma: y = x - \frac{2}{x^2}$，且 $x \neq 0, y \neq x$，所以 $\Gamma$ 无渐近线。
+    
+    若 $x \to \pm\infty$，则 $y - x = -\frac{2}{x^2} \to 0$，即 $y \to x$。故 $y = x$ 为 $\Gamma$ 的斜渐近线。
+    
+    \textbf{单调性}
+    
+    易有 $y' = 1 + \frac{4}{x^3}$，可见 $x > 0$ 时，$\Gamma$ 单调递增。$\left(-\infty, -\sqrt[3]{4}\right)$ 时，$\Gamma$ 单调递减；
+    
+    且 $x < 0$ 时，$\Gamma \leq -2\sqrt{3} - 2^{1-1} = -2 - \sqrt{2}$。
+    
+    \textbf{交点}
+    
+    由于 $x - 2$ 与 $x > 0$ 时，$\Gamma$ 的图象关于 $x = 0$ 时的无关，且 $A(x_1, y_1), B(x_2, y_2)$
+    
+    $k_{AB} = \frac{y_2 - y_1}{x_2 - x_1} = 1 + \frac{2(x_2 + x_1)}{(x_1 x_2)^2} > 1 + \frac{4}{\sqrt{(x_1 x_2)^3}} > 1 + \sqrt{2}$。
+\end{analysisBox}
+
+\vspace{1em}
+
+% 测验盒子示例
+\begin{quizBox}{测验 2Q}
+    分别求三种曲线 $y = x + \frac{1}{x}$，$y = x - \frac{1}{x}$，$\frac{x^2}{a^2} - \frac{y^2}{b^2} = 1$ 的渐近线。
+\end{quizBox}
+
+\end{document}

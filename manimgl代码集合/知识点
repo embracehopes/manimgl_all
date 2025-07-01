@@ -18,4 +18,5 @@ last_rotation = getattr(mob, '_last_rotation', 0)##给last_rotation一个初始�
             print("=" * 50)
 #########################
 transform（）不能3D变换成2D
-GlowDot的参数有
+GlowDot的参数有glow_factor和radius，glow_factor控制发光的强度，radius控制点的大小
+类似球体变大的动画用become方法，避免了重复创建对象，和无限制变大，，创建初始的新的球体副本作为基准，避免累积缩放问题
