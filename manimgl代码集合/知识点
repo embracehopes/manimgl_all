@@ -10,13 +10,18 @@ last_rotation = getattr(mob, '_last_rotation', 0)##给last_rotation一个初始�
             
             print("=" * 50)
             print("📷 相机信息:")
-            print(f"  θ (theta): {theta/DEGREES:.2f}°")
-            print(f"  φ (phi): {phi/DEGREES:.2f}°")
-            print(f"  γ (gamma): {gamma/DEGREES:.2f}°")
-            print(f"  中心位置: ({center[0]:.2f}, {center[1]:.2f}, {center[2]:.2f})")
-            print(f"  视野高度: {height:.2f}")
+            print(f"#  θ (theta): {theta/DEGREES:.2f}°")
+            print(f"#  φ (phi): {phi/DEGREES:.2f}°")
+            print(f"#  γ (gamma): {gamma/DEGREES:.2f}°")
+            print(f"#  中心位置: ({center[0]:.2f}, {center[1]:.2f}, {center[2]:.2f})")
+            print(f"#  视野高度: {height:.2f}")
             print("=" * 50)
 #########################
+        self.camera.frame.set_euler_angles(theta=52.90, phi=60.95, gamma=0.00)
+        self.camera.frame.move_to(np.array([4.43, 0.54, 2.54]))
+        self.camera.frame.set_height(9.08)
+        self.camera.frame.set_focal_distance(500)
+########################
 transform（）不能3D变换成2D
 GlowDot的参数有glow_factor和radius，glow_factor控制发光的强度，radius控制点的大小
-类似球体变大的动画用become方法，避免了重复创建对象，和无限制变大，，创建初始的新的球体副本作为基准，避免累积缩放问题
+类似球体变大的动画用become方法，避免了重复创建对象，和无限制变大，，创建初始的新的球体副本作为基准，避免累积缩放问题~

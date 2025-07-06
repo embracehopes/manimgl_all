@@ -1,0 +1,105 @@
+from manimlib import *
+import numpy as np
+
+
+
+class silengzhui(ThreeDScene):
+    def construct(self):
+        # 创建一个三维坐标系
+        self.camera.frame.set_euler_angles(
+            theta=90 * DEGREES,
+            phi=75 * DEGREES,
+            gamma=0 * DEGREES
+        )
+        axes = ThreeDAxes(
+            x_range=[-5, 5],
+            y_range=[-5, 5],
+            z_range=[-5, 5],
+            depth=10,
+            width=10,
+            height=10,
+            axis_config={
+                "stroke_color": BLUE,
+                "stroke_width": 2,
+                "include_tip": True,
+                "include_ticks": False
+            }
+        )
+        self.add(axes)
+        #标注x轴
+        x_label = Tex(r"x", color=BLUE).next_to(axes.x_axis, RIGHT).rotate(PI / 2, RIGHT).rotate(PI / 2, OUT)
+        x_label.set_color(BLUE)
+        self.add(x_label)
+        #标注y轴
+        y_label = Tex(r"y", color=BLUE).next_to(axes.y_axis, UP).rotate(PI / 2, RIGHT).rotate(PI / 2, OUT)
+        y_label.set_color(BLUE)
+        self.add(y_label)
+        #标注z轴
+        z_label = Tex(r"z", color=BLUE).next_to(axes.z_axis, OUT).rotate(PI / 2, RIGHT).rotate(PI / 2, OUT)
+        z_label.set_color(BLUE)
+        self.add(z_label)
+        # 创建四棱锥
+        # 创建四棱锥
+        D = Dot(axes.c2p(0, 0, 0), color=PINK,radius=0.1)
+        A = Dot(axes.c2p( 0.5*np.sqrt(3), -0.5, 0), color=PINK,radius=0.1)
+        B = Dot(axes.c2p(0.5*np.sqrt(3),1.5, 0), color=PINK,radius=0.1)
+        C = Dot(axes.c2p(0, 1, 0), color=PINK,radius=0.1)
+        # 添加四棱锥的顶点
+        P = Dot(axes.c2p(0, 0, np.sqrt(3)), color=PINK,radius=0.1)
+        D_label = Tex(r"D", color=PINK).next_to(D, DOWN)
+        D_label.set_color(PINK)
+        D_label.rotate(PI / 2, RIGHT).rotate(PI / 2, OUT)
+        A_label = Tex(r"A", color=PINK).next_to(A, DOWN*0.5)
+        A_label.set_color(PINK)
+        A_label.rotate(PI / 2, RIGHT).rotate(PI / 2, OUT)
+        B_label = Tex(r"B", color=PINK).next_to(B, UP)
+        B_label.set_color(PINK)
+        B_label.rotate(PI / 2, RIGHT).rotate(PI / 2,OUT)
+        C_label = Tex(r"C", color=PINK).next_to(C, UP)
+        C_label.set_color(PINK)
+        C_label.rotate(PI / 2, RIGHT).rotate(PI / 2, OUT)
+        P_label = Tex(r"P", color=PINK).next_to(P, UP)
+        P_label.set_color(PINK)
+        P_label.rotate(PI / 2, RIGHT).rotate(PI / 2, OUT)   
+        #创建四个面
+        face1 = Polygon(A.get_center(), B.get_center(), P.get_center(), color=GREEN, fill_opacity=0.5)
+        face2 = Polygon(B.get_center(), C.get_center(), P.get_center(), color=GREEN, fill_opacity=0.5)
+        face3 = Polygon(C.get_center(), D.get_center(), P.get_center(), color=GREEN, fill_opacity=0.5)
+        face4 = Polygon(D.get_center(), A.get_center(), P.get_center(), color=GREEN, fill_opacity=0.5)
+        face5 = Polygon(A.get_center(), B.get_center(), C.get_center(), D.get_center(), color=GREEN, fill_opacity=0.5)
+        # 添加线段
+        line1 = Line(A.get_center(), B.get_center(), color=BLUE)
+        line1.set_stroke(width=10)
+        line2 = Line(B.get_center(), C.get_center(), color=BLUE)
+        line2.set_stroke(width=10)
+        line3 = Line(C.get_center(), D.get_center(), color=BLUE)
+        line3.set_stroke(width=10)
+        line4 = Line(D.get_center(), A.get_center(), color=BLUE)
+        line4.set_stroke(width=10)
+        line5 = Line(A.get_center(), P.get_center(), color=BLUE)
+        line5.set_stroke(width=10)
+        line6 = Line(B.get_center(), P.get_center(), color=BLUE)
+        line6.set_stroke(width=10)
+        line7 = Line(C.get_center(), P.get_center(), color=BLUE)
+        line7.set_stroke(width=10)
+        line8 = Line(D.get_center(), P.get_center(), color=BLUE)
+        line8.set_stroke(width=10)
+        # 添加面和线段
+        self.add(face1, face2, face3, face4, face5)
+        self.add(line1, line2, line3, line4, line5, line6, line7, line8)
+
+        self.add(D_label, A_label, B_label, C_label, P_label)
+
+        self.add(D, A, B, C)
+
+        self.embed()
+        self.clear()
+
+
+
+
+
+       
+if __name__ == "__main__":
+    import os
+    os.system("manimgl b.py b1")

@@ -1,0 +1,152 @@
+from glm import dot
+from manimlib import *
+from moderngl import LINE_STRIP_ADJACENCY
+import numpy as np
+from pyparsing import line
+
+
+
+class silengzhui(ThreeDScene):
+    def construct(self):
+#  θ (theta): 46.54
+#  φ (phi): 62.25
+#  γ (gamma): 0.00
+#  中心位置: (5.49, 0.38, 3.25)
+#  视野高度: 7.71
+        # 设置相机参数
+        self.camera.frame.set_euler_angles(theta=46.54 * DEGREES, phi=62.25 * DEGREES, gamma=0.00 * DEGREES)
+        self.camera.frame.move_to(np.array([5.49, 0.38, 3.25]))
+        self.camera.frame.set_height(7.71)
+
+
+
+        # 创建一个正方体
+        A = Dot(point=np.array([0, 0, 0]), color=YELLOW)
+        B = Dot(point=np.array([5, 0, 0]), color=YELLOW)
+        C = Dot(point=np.array([5, 5, 0]), color=YELLOW)
+        D = Dot(point=np.array([0, 5, 0]), color=YELLOW)
+        A_1 = Dot(point=np.array([0, 0, 5]), color=YELLOW)
+        B_1 = Dot(point=np.array([5, 0, 5]), color=YELLOW)
+        C_1 = Dot(point=np.array([5, 5, 5]), color=YELLOW)
+        D_1 = Dot(point=np.array([0, 5, 5]), color=YELLOW)
+        self.add(A, B, C, D, A_1, B_1, C_1, D_1)
+        # 创建六面
+        face1 = Polygon(A.get_center(), B.get_center(), C.get_center(), D.get_center(), color=BLUE, fill_opacity=0.5)
+        face2 = Polygon(A_1.get_center(), B_1.get_center(), C_1.get_center(), D_1.get_center(), color=BLUE, fill_opacity=0.5)
+        face3 = Polygon(A.get_center(), B.get_center(), B_1.get_center(), A_1.get_center(), color=BLUE, fill_opacity=0.5)
+        face4 = Polygon(B.get_center(), C.get_center(), C_1.get_center(), B_1.get_center(), color=BLUE, fill_opacity=0.5)
+        face5 = Polygon(C.get_center(), D.get_center(), D_1.get_center(), C_1.get_center(), color=BLUE, fill_opacity=0.5)
+        face6 = Polygon(D.get_center(), A.get_center(), A_1.get_center(), D_1.get_center(), color=BLUE, fill_opacity=0.5)
+
+        # 创建标签
+        label_A = Tex("A", color=PINK).next_to(A, DOWN).rotate(PI / 2, RIGHT).rotate(PI / 2, OUT)
+        label_B = Tex("B", color=PINK).next_to(B, DOWN).rotate(PI / 2, RIGHT).rotate(PI / 2, OUT)
+        label_C = Tex("C", color=PINK).next_to(C, UP).rotate(PI / 2, RIGHT).rotate(PI / 2, OUT)
+        label_D = Tex("D", color=PINK).next_to(D, UP).rotate(PI / 2, RIGHT).rotate(PI / 2, OUT)
+        label_A_1 = Tex("A'", color=PINK).next_to(A_1, DOWN).rotate(PI / 2, RIGHT).rotate(PI / 2, OUT)
+        label_B_1 = Tex("B'", color=PINK).next_to(B_1, DOWN).rotate(PI / 2, RIGHT).rotate(PI / 2, OUT)
+        label_C_1 = Tex("C'", color=PINK).next_to(C_1, UP).rotate(PI / 2, RIGHT).rotate(PI / 2, OUT)
+        label_D_1 = Tex("D'", color=PINK).next_to(D_1, UP).rotate(PI / 2, RIGHT).rotate(PI / 2, OUT)
+        # 标签设置颜色
+        label_A.set_color(PINK)
+        label_B.set_color(PINK)
+        label_C.set_color(PINK)
+        label_D.set_color(PINK)
+        label_A_1.set_color(PINK)
+        label_B_1.set_color(PINK)
+        label_C_1.set_color(PINK)
+        label_D_1.set_color(PINK)
+
+        #添加线条
+        line_AB = Line(A.get_center(), B.get_center(), color=RED)
+        line_AD = Line(A.get_center(), D.get_center(), color=RED)
+        line_BC = Line(B.get_center(), C.get_center(), color=RED)
+        line_CD = Line(C.get_center(), D.get_center(), color=RED)
+        line_A_1B_1 = Line(A_1.get_center(), B_1.get_center(), color=RED)
+        line_A_1D_1 = Line(A_1.get_center(), D_1.get_center(), color=RED)
+        line_B_1C_1 = Line(B_1.get_center(), C_1.get_center(), color=RED)
+        line_C_1D_1 = Line(C_1.get_center(), D_1.get_center(), color=RED)
+        line_AA_1 = Line(A.get_center(), A_1.get_center(), color=RED)
+        line_BB_1 = Line(B.get_center(), B_1.get_center(), color=RED)
+        line_CC_1 = Line(C.get_center(), C_1.get_center(), color=RED)
+        line_DD_1 = Line(D.get_center(), D_1.get_center(), color=RED)
+        
+
+        N = Sphere(radius=0.2, color=PINK).move_to((C.get_center() + C_1.get_center()) / 2)
+        M = Sphere(radius=0.2, color=PINK).move_to((A.get_center() + B.get_center()) / 2)
+        M.mesh = SurfaceMesh(M, resolution=(16, 16))
+        M.mesh.set_stroke(RED, opacity=1, width=1)
+        M.add(M.mesh)
+        N.mesh = SurfaceMesh(N, resolution=(16, 16))
+        N.mesh.set_stroke(RED, opacity=1, width=1)
+        N.add(N.mesh)
+        self.add(M)
+        self.add(N)
+        #M,N创建标签
+        label_M = Tex("M", color=PINK).next_to(M, DOWN).rotate(PI / 2, RIGHT).rotate(PI / 2, OUT)
+        label_N = Tex("N", color=PINK).next_to(N, UP).rotate(PI / 2, RIGHT).rotate(PI / 2, OUT)
+        label_M.set_color(PINK)
+        label_N.set_color(PINK)
+        self.add(label_M, label_N)
+        path = TracedPath(
+            M.get_center,
+            stroke_color=PURPLE,
+            stroke_width=20,
+        )
+        self.add(path)
+
+
+        line_MB = Line(M.get_center(), B.get_center(), color=RED)
+        line_BC = Line(B.get_center(), C.get_center(), color=RED)
+        line_CN = Line(C.get_center(), N.get_center(), color=RED)
+
+
+
+
+
+
+        self.add(line_AB, line_AD, line_BC, line_CD, line_A_1B_1, line_A_1D_1, line_B_1C_1, line_C_1D_1, line_AA_1, line_BB_1, line_CC_1, line_DD_1)
+        self.add(label_A, label_B, label_C, label_D, label_A_1, label_B_1, label_C_1, label_D_1)
+        self.add(face1, face2, face3, face4, face5, face6)
+        #AB中点M，cc1中点N
+
+
+
+        self.play(
+            MoveAlongPath(
+                M, 
+                line_MB,
+                run_time=2,
+                rate_func=linear
+            )
+        )
+        self.play(
+            MoveAlongPath(
+                M, 
+                line_BC,
+                run_time=2,
+                rate_func=linear
+            )
+        )
+        self.play(
+            MoveAlongPath(
+                M, 
+                line_CN,
+                run_time=2,
+                rate_func=linear
+            )
+        )
+
+
+        
+        self.embed()
+        self.clear()
+
+
+
+
+
+       
+if __name__ == "__main__":
+    import os
+    os.system("manimgl b.py ")

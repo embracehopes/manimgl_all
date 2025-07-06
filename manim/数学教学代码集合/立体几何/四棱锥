@@ -1,0 +1,138 @@
+
+from manim import *
+import numpy as np
+config.background_color = WHITE  # 背景设为白色
+
+
+class manim(ThreeDScene):
+    def construct(self):
+                # 创建一个三维坐标系
+        self.set_camera_orientation(
+            theta=-45 * DEGREES,
+            phi=75 * DEGREES,
+            gamma=0 * DEGREES,
+            zoom=0.5,
+            frame_center=(0, 0, 2)  # 设置相机中心点
+        )
+ 
+
+
+
+        axes = ThreeDAxes(
+            x_range=[-15, 15],
+            y_range=[-15, 15],
+            z_range=[-15, 15],
+            x_length=18,
+            y_length=18,
+            z_length=18,
+            axis_config={
+                "stroke_color": BLUE,
+                "stroke_width": 2,
+                "include_tip": True,
+                "include_ticks": False
+            }
+        )
+        self.add(axes)
+        #标注x轴
+        x_label = MathTex(r"x", color=BLUE).next_to(axes.x_axis, RIGHT).rotate(PI / 2, RIGHT).rotate(PI / 2, OUT)
+        x_label.set_color(BLUE)
+        self.add(x_label)
+        #标注y轴
+        y_label = MathTex(r"y", color=BLUE).next_to(axes.y_axis, UP).rotate(PI / 2, RIGHT).rotate(PI / 2, OUT)
+        y_label.set_color(BLUE)
+        self.add(y_label)
+        #标注z轴
+        z_label = MathTex(r"z", color=BLUE).next_to(axes.z_axis, OUT).rotate(PI / 2, RIGHT).rotate(PI / 2, OUT)
+        z_label.set_color(BLUE)
+        self.add(z_label)
+        # 坐标数值放大五倍
+        D = Dot3D(axes.c2p(0, 0, 0), color=BLUE,radius=0.1)
+        A = Dot3D(axes.c2p( 0.5*np.sqrt(3)*5, -0.5*5, 0), color=BLUE,radius=0.1)
+        B = Dot3D(axes.c2p(0.5*np.sqrt(3)*5,1.5*5, 0), color=BLUE,radius=0.1)
+        C = Dot3D(axes.c2p(0, 1*5, 0), color=BLUE,radius=0.1)
+        # 添加四棱锥的顶点
+        P = Dot3D(axes.c2p(0, 0, np.sqrt(3)*5), color=BLUE,radius=0.1)
+        D_label = MathTex(r"D", color=PINK).next_to(D, DOWN)
+        D_label.set_color(PINK)
+        D_label.rotate(PI / 2, RIGHT).rotate(PI / 2, OUT)
+        A_label = MathTex(r"A", color=PINK).next_to(A, DOWN*0.3)
+        A_label.set_color(PINK)
+        A_label.rotate(PI / 2, RIGHT).rotate(PI / 2, OUT)
+        B_label = MathTex(r"B", color=PINK).next_to(B, UP)
+        B_label.set_color(PINK)
+        B_label.rotate(PI / 2, RIGHT).rotate(PI / 2,OUT)
+        C_label = MathTex(r"C", color=PINK).next_to(C, UP)
+        C_label.set_color(PINK)
+        C_label.rotate(PI / 2, RIGHT).rotate(PI / 2, OUT)
+        P_label = MathTex(r"P", color=PINK).next_to(P, UP)
+        P_label.set_color(PINK)
+        P_label.rotate(PI / 2, RIGHT).rotate(PI / 2, OUT)   
+        #创建四个面
+        face1 = Polygon(A.get_center(), B.get_center(), P.get_center(), color=TEAL, fill_opacity=0.3)
+        face2 = Polygon(B.get_center(), C.get_center(), P.get_center(), color=TEAL, fill_opacity=0.3)
+        face3 = Polygon(C.get_center(), D.get_center(), P.get_center(), color=TEAL, fill_opacity=0.3)
+        face4 = Polygon(D.get_center(), A.get_center(), P.get_center(), color=TEAL, fill_opacity=0.3)
+        face5 = Polygon(A.get_center(), B.get_center(), C.get_center(), D.get_center(), color=TEAL, fill_opacity=0.3)
+        # 添加线段
+        line1 = Line3D(A.get_center(), B.get_center(), color=BLUE)
+        line1.set_stroke(width=2)
+        line2 = Line3D(B.get_center(), C.get_center(), color=BLUE)
+        line2.set_stroke(width=2)
+        line3 = Line3D(C.get_center(), D.get_center(), color=BLUE)
+        line3.set_stroke(width=2)
+        line4 = Line3D(D.get_center(), A.get_center(), color=BLUE)
+        line4.set_stroke(width=2)
+        line5 = Line3D(A.get_center(), P.get_center(), color=BLUE)
+        line5.set_stroke(width=2)
+        line6 = Line3D(B.get_center(), P.get_center(), color=BLUE)
+        line6.set_stroke(width=2)
+        line7 = Line3D(C.get_center(), P.get_center(), color=BLUE)
+        line7.set_stroke(width=2)
+        line8 = Line3D(D.get_center(), P.get_center(), color=BLUE)
+        line8.set_stroke(width=2)
+        # 添加面和线段
+        self.play(
+            FadeIn(face1,shift=LEFT),
+            FadeIn(face2,shift=DOWN),
+            FadeIn(face3,shift=RIGHT),
+            FadeIn(face4,shift=UP),
+            FadeIn(face5,shift=OUT),
+            run_time=1,
+            rate_func=smooth  # 使用 smooth 函数使面和线段缓入缓出
+        )
+        self.play(
+            FadeIn(line1),
+            FadeIn(line2),
+            FadeIn(line3),
+            FadeIn(line4),
+            FadeIn(line5),
+            FadeIn(line6),
+            FadeIn(line7),
+            FadeIn(line8),
+            run_time=0.5,
+            rate_func=smooth  # 使用 smooth 函数使线段缓入缓出
+        )
+
+        self.add(D_label, A_label, B_label, C_label, P_label)
+
+        self.add(D, A, B, C, P)
+        
+        # 相机逆时针旋转120度（围绕z轴）
+        self.move_camera(
+            theta=self.camera.get_theta() + 50 * DEGREES,
+            run_time=4,
+            rate_func=smooth  # 使用 smooth 函数使旋转缓入缓出
+
+        )
+       
+
+
+if __name__ == "__main__":
+    import os
+    # 运行基础版本
+    os.system("manimce b_1.py -pqk")  # 使用 -pql 参数以低质量预览
+    # os.system("manimce b_1.py")  # 使用默认质量
+    
+    # 如果想运行其他版本，使用以下命令：
+    # os.system("manimgl b.py SphereRollingSimple")
+    # os.system("manimgl b.py SphereRollingAdvanced")

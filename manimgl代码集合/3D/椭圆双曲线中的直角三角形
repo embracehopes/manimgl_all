@@ -1,0 +1,396 @@
+from OpenGL.GL.SUN import triangle_list
+from click import group
+from glm import sqrt
+from manimlib import *
+import numpy as np
+from scipy.fftpack import shift
+from sympy import Curve
+
+
+class modao(Scene):
+    def construct(self):
+        #创建坐标系
+        axes = Axes(
+            x_range=[-3, 3, 1],
+            y_range=[-3, 3, 1],
+            height=6,
+            width=6,
+            axis_config={
+            "stroke_color": BLUE,
+            "stroke_width": 2,
+            "include_tip": True,
+            "include_ticks":False
+        })
+        #创建椭圆
+        ellipse = Ellipse(
+            width=2*sqrt(4),
+            height=2*sqrt(3),
+            stroke_color=PINK
+
+        )
+        ellipse.move_to(axes.c2p(0, 0))
+        #创建三角形
+        triangle_initial = Polygon(
+            (4, 0, 0),
+            (0, 3, 0),
+            (0, 0, 0),
+            stroke_color=PURPLE,
+            fill_color=YELLOW,
+            fill_opacity=0.5
+        )
+        triangle_initial.shift(axes.c2p(-1, -1, 0))
+        triangle_ellipse = Polygon(
+            axes.c2p(0, 0, 0),
+            axes.c2p(1, 0, 0),
+            axes.c2p(0, sqrt(3), 0),
+            stroke_color=PURPLE,
+            fill_color=YELLOW,
+            fill_opacity=0.5
+        )
+        right_angle_mark = Polygon(
+            axes.c2p(0, 0, 0),
+            axes.c2p(0.2, 0, 0),
+            axes.c2p(0.2, 0.2, 0),
+            axes.c2p(0, 0.2, 0),
+            stroke_color=BLUE,
+            stroke_width=1,
+            fill_color=RED,
+            fill_opacity=0.8
+        )
+
+        self.play(
+            ShowCreation(triangle_initial),
+            run_time=0.5
+        )
+        self.play(
+            triangle_initial.animate.scale(0.5),
+            run_time=0.5
+        )
+        self.play(
+            ShowCreation(axes),
+            Transform(triangle_initial, triangle_ellipse),
+            ShowCreation(ellipse),
+            ShowCreation(right_angle_mark),
+            run_time=2,
+            rate_func=smooth
+        )
+
+        Tex_a = Tex("a", color=GREEN)
+        Tex_a.set_color_by_gradient(BLUE, GREEN)
+        Tex_b = Tex("b", color=GREEN)
+        Tex_b.set_color_by_gradient(BLUE, GREEN)
+        Tex_c = Tex("c", color=GREEN)  
+        Tex_F1= Tex("F", color=GREEN)
+        Tex_F1.set_color_by_gradient(BLUE, GREEN) 
+        Tex_c.set_color_by_gradient(BLUE, GREEN)
+        Tex_a.move_to(axes.c2p(0.7, 0.9, 0) )
+        Tex_b.move_to(axes.c2p(-0.2, 0.8, 0) )
+        Tex_c.move_to(axes.c2p(0.5, -0.3, 0) )
+        Tex_F1.move_to(axes.c2p(1, -0.3, 0) )
+        self.play(
+            FadeIn(Tex_a,shift=LEFT*3),
+            FadeIn(Tex_b,shift=RIGHT*3),
+            FadeIn(Tex_c,shift=UP*3),
+            FadeIn(Tex_F1,shift=UP*3),
+            run_time=0.5
+        )
+        #汇集所有元素
+        all_mobjects = VGroup(axes, ellipse, triangle_ellipse, right_angle_mark, Tex_a, Tex_b, Tex_c, Tex_F1, triangle_initial)
+        self.play(
+            all_mobjects.animate.shift(LEFT*3.9 ),
+            run_time=0.5,
+            rate_func=smooth
+        )
+        #标注角度theta
+        theta = Tex(r"\theta", color=GREEN)
+        theta.set_color_by_gradient(BLUE, GREEN)
+        theta.move_to(axes.c2p(0.6, 0.25, 0))
+        # 创建扇形角度标记
+        theta_sector = Sector(
+            start_angle=PI,           # 起始角度
+            angle=-PI/3,              # 角度大小
+            radius=0.3,              # 半径
+            arc_center=axes.c2p(1, 0, 0),  # 圆心位置
+            fill_color=GREEN,
+            fill_opacity=0.8,
+            stroke_color=GREEN,
+            stroke_width=2
+        )
+        self.play(
+            FadeIn(theta, shift=LEFT*3),
+            FadeIn(theta_sector, shift=LEFT*3),
+            run_time=0.5
+        )
+# ...existing code...
+        #公式于右边演示
+        #七种颜色
+        colors = [BLACK]
+        
+        # 修正 LaTeX 语法 - 移除多余的美元符号
+        formula_1 = Tex(r"a^2 = b^2 + c^2", color=GREEN)
+        formula_1.set_color_by_gradient(*colors)
+        formula_2 = Tex(r"\\sin(\theta) = \frac{b}{a}", color=GREEN)  # 移除 $ 符号
+        formula_2.set_color_by_gradient(*colors)
+        formula_3 = Tex(r"\\cos(\theta) = \frac{c}{a} = e", color=GREEN)  # 移除 $ 符号
+        formula_3.set_color_by_gradient(*colors)
+        formula_3_text = Text("e为离心率",  font_size=42,font="汉仪瘦金书简")
+        formula_3_text.set_color_by_gradient(*colors)
+        formula_group = VGroup(formula_1, formula_2, formula_3, formula_3_text).arrange(DOWN, aligned_edge=LEFT)
+        formula_group.scale(1.5)
+        formula_group.next_to(axes, RIGHT, buff=0.5)
+
+        
+        self.play(
+            FadeIn(formula_group, shift=DOWN*3),
+            run_time=0.5
+        )
+    
+
+        
+
+
+        ###########动画转化##########
+
+        self.play(
+            self.camera.frame.animate.move_to( (4.21, -4.32, 0)).set_height(15),
+            run_time=1,
+            rate_func=smooth)
+
+
+
+
+
+       
+        ###############双曲线环节##########
+        #创建双曲线
+        axes2 = Axes(
+            x_range=[-3, 3, 1],
+            y_range=[-3, 3, 1],
+            height=6,
+            width=6,
+            axis_config={
+                "stroke_color": BLUE,
+                "stroke_width": 2,
+                "include_tip": True,
+                "include_ticks": False
+            }
+        ).shift(DOWN * 8+LEFT * 3.9)
+        hyperbola_right = ParametricCurve(
+            lambda t: axes2.c2p(np.cosh(t), np.sinh(t)),
+            t_range=(-2, 2, 0.1),
+            stroke_color=PINK
+        )
+
+        # 左分支: x = -a*cosh(t), y = b*sinh(t)
+        hyperbola_left = ParametricCurve(
+            lambda t: axes2.c2p(-np.cosh(t), np.sinh(t)),
+            t_range=(-2, 2, 0.1),
+            stroke_color=PINK
+        )
+        hyperbola = VGroup(hyperbola_right, hyperbola_left)
+
+        # 创建双曲线的渐近线
+        dashline1 = DashedLine(
+            start=axes2.c2p(-4, -4, 0),
+            end=axes2.c2p(4, 4, 0),
+            color=PINK,
+            stroke_width=1.5,
+            dash_length=0.16,
+        )
+        dashline2 = DashedLine(
+            start=axes2.c2p(4, -4, 0),
+            end=axes2.c2p(-4, 4, 0),
+            color=PINK,
+            stroke_width=1.5,
+            dash_length=0.16,
+        )
+        # 创建双曲线的直角三角形
+        triangle_hyperbola = Polygon(
+            axes2.c2p(0, 0, 0),
+            axes2.c2p(sqrt(2), 0, 0),
+            axes2.c2p(sqrt(2)/2, sqrt(2)/2, 0),
+            stroke_color=PURPLE,
+            stroke_width=1,
+            fill_color=YELLOW,
+            fill_opacity=0.5
+        )
+
+
+
+        dashline3 = DashedLine(
+            start=axes2.c2p(sqrt(2), 0, 0),
+            end=axes2.c2p(sqrt(2)/2, sqrt(2)/2, 0),
+            color=PURPLE,
+            stroke_width=1.5,
+            dash_length=0.16,
+        )
+
+        Tex_a2 = Tex_a.copy().move_to(axes2.c2p(0.3, 0.7, 0))
+        Tex_b2 = Tex_b.copy().move_to(axes2.c2p(1.3, 0.43, 0))
+        Tex_c2 = Tex_c.copy().move_to(axes2.c2p(sqrt(2)/2, -0.3, 0))
+        Tex_F  = Tex("F", color=GREEN)
+        Tex_F.set_color_by_gradient(BLUE, GREEN)
+        Tex_F.move_to(axes2.c2p(sqrt(2), -0.3, 0))
+
+        #直角标记
+        right_angle_mark2 = right_angle_mark.copy().move_to(axes2.c2p(sqrt(2)/2, sqrt(2)/2, 0)).rotate(PI/4).shift(DOWN*sqrt(2)/10)
+
+
+        #渐近线标记
+        Tex_e = Tex("y=\\frac{b}{a}x", color=GREEN)
+        Tex_e.set_color_by_gradient(BLUE, GREEN)
+        Tex_e.move_to(axes2.c2p(3.7, 4.5, 0))
+        #角度标记
+        theta2 = theta.copy().move_to(axes2.c2p(0.6, 0.25, 0))
+        theta_sector2 = Sector(
+            start_angle=0,           # 起始角度
+            angle=PI/4,              # 角度大小
+            radius=0.3,              # 半径
+            arc_center=axes2.c2p(0, 0, 0),  # 圆心位置
+            fill_color=GREEN,
+            fill_opacity=0.8,
+            stroke_color=GREEN,
+            stroke_width=0
+        )
+        #公式演示
+        formula_4 = Tex(r"c^2 = b^2 + a^2", color=GREEN)
+        formula_4.set_color_by_gradient(*colors)
+        formula_5 = Tex(r"\\sin(\theta) = \frac{b}{c}", color=GREEN)
+        formula_5.set_color_by_gradient(*colors)
+        formula_6 = Tex(r"\\cos(\theta) = \frac{a}{c} = \frac{1}{e}", color=GREEN)
+        formula_6.set_color_by_gradient(*colors)
+        formula_6_text = Text("离心率倒数",  font_size=42,font="汉仪瘦金书简")
+        formula_6_text.set_color_by_gradient(*colors)
+        group_2 = VGroup(formula_4, formula_5, formula_6, formula_6_text).arrange(DOWN, aligned_edge=LEFT)
+        group_2.scale(1.5)
+        group_2 .next_to(axes2,RIGHT, buff=0.5)
+
+
+
+
+        self.play(
+        self.camera.frame.animate.move_to( (4.21, -4.32, 0)).set_height(15),
+            run_time=1,
+            rate_func=smooth)
+        self.play(
+            TransformFromCopy(axes, axes2),
+            TransformFromCopy(ellipse, hyperbola),
+            TransformFromCopy(triangle_initial, triangle_hyperbola),
+            TransformFromCopy(right_angle_mark, right_angle_mark2),
+            TransformFromCopy(Tex_a, Tex_a2),
+            TransformFromCopy(Tex_b, Tex_b2),
+            TransformFromCopy(Tex_c, Tex_c2),
+            TransformFromCopy(Tex_F1, Tex_F),
+            TransformFromCopy(theta, theta2),
+            TransformFromCopy(theta_sector, theta_sector2),
+            run_time=2,
+            rate_func=smooth
+        )
+        self.play(
+            ShowCreation(dashline1),
+            ShowCreation(dashline2),
+            ShowCreation(dashline3),
+            ShowCreation(Tex_e),
+            run_time=0.5,
+            rate_func=smooth
+        )
+        self.play(
+            self.camera.frame.animate.move_to( (-1, -7.55, 0)).set_height(8.65),
+    
+        )
+        self.play(
+            Write(formula_4),
+            Write(formula_5),
+            Write(formula_6),
+            Write(formula_6_text),
+            run_time=0.5,
+            rate_func=smooth
+                )
+        #汇集双曲线和公式所有元素
+        all_mobjects2 = VGroup(axes2, hyperbola, triangle_hyperbola, right_angle_mark2, Tex_a2, Tex_b2, Tex_c2, Tex_F, dashline1, dashline2, dashline3, Tex_e, theta2, theta_sector2, formula_4, formula_5, formula_6, formula_6_text)
+        all_mobjects2c_copy = all_mobjects2.copy()
+        
+        self.play(
+        self.camera.frame.animate.move_to( (4.21, -4.32, 0)).set_height(15),
+            run_time=1,
+            rate_func=smooth)
+
+
+        all_mobjects2c_copy.shift(RIGHT * 13)
+
+        self.play(
+            TransformFromCopy(all_mobjects2, all_mobjects2c_copy),
+            run_time=0.5,
+            rate_func=smooth
+        )
+        self.play(
+            self.camera.frame.animate.move_to( (12.5, -7.55, 0)).set_height(8.65),
+    
+        )
+        ###########
+        #双曲线新直角三角形
+        triangle_hyperbola_new = Polygon(
+            axes2.c2p(0, 0, 0),
+            axes2.c2p(1, 0, 0),
+            axes2.c2p(1, 1, 0),
+            stroke_color=PURPLE,
+            stroke_width=1,
+            fill_color=YELLOW,
+            fill_opacity=0.5
+        ).shift(RIGHT * 13)
+        #双曲线新直角标记
+        right_angle_mark_new =right_angle_mark.copy().move_to(axes2.c2p(0.9, 0.1, 0)).shift(RIGHT * 13)
+        #双曲线新垂线
+        dashline3_new = DashedLine(
+            start=axes2.c2p(1, 0, 0),
+            end=axes2.c2p(1, 1, 0),
+            color=PURPLE,
+            stroke_width=1.5,
+            dash_length=0.16,
+        ).shift(RIGHT * 13)
+
+
+        Tex_a3 = Tex_a.copy().move_to(axes2.c2p(0.5, -0.2, 0)).shift(RIGHT * 13)
+        Tex_c3 = Tex_c.copy().move_to(axes2.c2p(0.4, 0.63, 0)).shift(RIGHT * 13)
+        self.play(
+            Transform(all_mobjects2c_copy[2], triangle_hyperbola_new),
+            Transform(all_mobjects2c_copy[6], Tex_a3),
+            Transform(all_mobjects2c_copy[4], Tex_c3),
+            Transform(all_mobjects2c_copy[3], right_angle_mark_new),
+            Transform(all_mobjects2c_copy[10], dashline3_new),
+            run_time=2,
+            rate_func=smooth
+        )
+        self.play(
+            self.camera.frame.animate.move_to( (12.5, -7.55, 0)).set_height(8.65),
+    
+        )
+
+
+
+
+
+
+
+
+
+
+
+
+        self.wait(1)
+        
+
+
+
+
+
+
+        self.embed()
+        self.clear()
+
+
+
+if __name__ == "__main__":
+    import os
+    # 运行线段标注示例
+    os.system("manimgl a.py modao ")
