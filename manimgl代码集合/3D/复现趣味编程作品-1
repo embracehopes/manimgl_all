@@ -1,0 +1,224 @@
+from manimlib import *
+from matplotlib import colors
+import numpy as np
+
+def cardioid_torus_function(dt):
+    def curve_func(t):
+        R, r = 3, 2
+        k1, k2, k3 = 2, 2, 2
+        u = 0.25 * t
+        v = t
+        
+        x = (R + r*(2*np.cos(v/2) - np.cos(k1*v))) * np.cos(u+dt)
+        y = 1.4*r * (2*np.sin(v/2) - np.sin(k2*v))
+        z = (R + r*(2*np.cos(v/2) - np.cos(k3*v))) * np.sin(u+dt)
+
+        return np.array([x, y, z])
+    return curve_func
+
+class Replicate(ThreeDScene):
+    def construct(self):
+        # 设置3D场景的视角
+        self.camera.frame.set_euler_angles(
+            theta=30 * DEGREES,
+            phi=0 * DEGREES
+        )
+        self.camera.frame.set_height(20)
+
+
+        def point_traces(
+            n_num=180,
+            n_dots=5,
+            dot_radius=0.001,
+            stroke_width=2,
+        ):
+            traced_paths = VGroup()
+            moving_dots = VGroup()
+            all_animations = []
+
+            for i in range(n_num):
+                surface = ParametricCurve(
+                    cardioid_torus_function(dt=2*PI*i/n_num),
+                    t_range=[-2 * PI, 2 * PI, 0.001],
+                    stroke_width=0,  # 设置为0，让曲线不可见
+                    stroke_opacity=0  # 设置透明度为0
+                )
+                # 不添加曲线到场景，让它保持不可见
+                if i%4==0:
+                    for j in range(n_dots):
+
+                        start = [0,4,8,12,16]
+                        start_t = start[j] / 20
+                        dot = Dot(
+                            radius=dot_radius,
+                            color=interpolate_color(YELLOW, GREEN, j/n_dots)
+                        )
+                        
+                        # 设置dot的初始位置到曲线上
+                        initial_position = surface.point_from_proportion(start_t)
+                        dot.move_to(initial_position)
+
+                        traced_path1 = TracedPath(
+                            dot.get_center,
+                            stroke_color=TEAL,
+                            stroke_width=stroke_width,
+                            stroke_opacity=0.4,
+                            time_traced=100
+                        )
+
+                        traced_paths.add(traced_path1)
+        
+                        moving_dots.add(dot)
+                                
+                        # 创建沿路径运动的动画
+                        all_animations.append(MoveAlongPath(dot, surface,
+                            rate_func=lambda t, start_t=start_t: (t + start_t) % 1,
+                            run_time=15
+                        ))
+                        #self.add(traced_path1, dot)
+                if i%4==1:
+                    for j in range(n_dots):
+                        start = [0,4,8,12,16]
+                        start_t = (start[j]+1) / 20
+                        dot = Dot(
+                            radius=dot_radius,
+                            color=interpolate_color(YELLOW, GREEN, j/n_dots)
+                        )
+                        
+                        # 设置dot的初始位置到曲线上
+                        initial_position = surface.point_from_proportion(start_t)
+                        dot.move_to(initial_position)
+                        
+                        traced_path1 = TracedPath(
+                            dot.get_center,
+                            stroke_color=TEAL,
+                            stroke_width=stroke_width,
+                            stroke_opacity=0.4,
+                            time_traced=100
+                        )
+
+                        traced_paths.add(traced_path1)
+        
+                        moving_dots.add(dot)
+                                
+                        # 创建沿路径运动的动画
+                        all_animations.append(MoveAlongPath(dot, surface,
+                            rate_func=lambda t, start_t=start_t: (t + start_t) % 1,
+                            run_time=15
+                        ))
+                        #self.add(traced_path1, dot)
+
+                if i%4==2:
+                    for j in range(n_dots):
+                        start = [0,4,8,12,16]
+                        start_t = (start[j]+2) / 20
+                        dot = Dot(
+                            radius=dot_radius,
+                            color=interpolate_color(YELLOW, GREEN, j/n_dots)
+                        )
+                        
+                        # 设置dot的初始位置到曲线上
+                        initial_position = surface.point_from_proportion(start_t)
+                        dot.move_to(initial_position)
+                        
+                        traced_path1 = TracedPath(
+                            dot.get_center,
+                            stroke_color=TEAL,
+                            stroke_width=stroke_width,
+                            stroke_opacity=0.4,
+                            time_traced=100
+                        )
+
+                        traced_paths.add(traced_path1)
+        
+                        moving_dots.add(dot)
+                                
+                        # 创建沿路径运动的动画
+                        all_animations.append(MoveAlongPath(dot, surface,
+                            rate_func=lambda t, start_t=start_t: (t + start_t) % 1,
+                            run_time=15
+                        ))
+                        #self.add(traced_path1, dot)
+
+                if i%4==3:
+                    for j in range(n_dots):
+                        start = [0,4,8,12,16]
+                        start_t = (start[j]+3) / 20
+                        dot = Dot(
+                            radius=dot_radius,
+                            color=interpolate_color(YELLOW, GREEN, j/n_dots)
+                        )
+                        
+                        # 设置dot的初始位置到曲线上
+                        initial_position = surface.point_from_proportion(start_t)
+                        dot.move_to(initial_position)
+                        
+                        traced_path1 = TracedPath(
+                            dot.get_center,
+                            stroke_color=TEAL,
+                            stroke_width=stroke_width,
+                            stroke_opacity=0.4,
+                            time_traced=100
+                        )
+
+                        traced_paths.add(traced_path1)
+        
+                        moving_dots.add(dot)
+                                
+                        # 创建沿路径运动的动画
+                        all_animations.append(MoveAlongPath(dot, surface,
+                            rate_func=lambda t, start_t=start_t: (t + start_t) % 1,
+                            run_time=15
+                        ))
+                        #self.add(traced_path1, dot)
+
+
+            return traced_paths, moving_dots, all_animations
+        
+        traces, dots, animations = point_traces(
+            n_num=180,
+            n_dots=5,
+            dot_radius=0.02,
+            stroke_width=1,
+        )
+
+        # 添加轨迹追踪到场景
+        for i in range(900):
+            if i<180:
+                colors=interpolate_color("#FFFF00", "#FFA500", i/180)
+                traces[i].set_stroke(width=1, color=colors)  # 设置轨迹颜色和宽度
+            if i>=180 and i<360:
+                colors=interpolate_color("#FFA500", "#2E8B57", (i-180)/180)
+                traces[i].set_stroke(width=1, color=colors)
+            if i>=360 and i<540:
+                colors=interpolate_color("#2E8B57", "#1E90FF", (i-360)/180)
+                traces[i].set_stroke(width=1, color=colors)
+            if i>=540 and i<720:
+                colors=interpolate_color("#1E90FF", "#00FFFF", (i-540)/180)
+                traces[i].set_stroke(width=1, color=colors)
+            if i>=720 and i<900:
+                colors=interpolate_color("#00FFFF", "#FFFF00", (i-720)/180)
+                traces[i].set_stroke(width=1, color=colors)
+
+        self.add(*dots)
+
+        self.add(*traces)
+          # 添加点到场景
+        
+    
+        # 电影级别的运镜设置
+        # 播放所有动画
+        self.play(*animations)
+        
+
+
+
+
+        # 找到特定的dot并添加tracker
+
+        # ...existing code...
+        
+        
+
+
+

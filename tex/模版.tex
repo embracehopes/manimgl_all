@@ -1,105 +1,453 @@
-\documentclass[12pt]{article}
+\documentclass{ctexart}
 
-% --- 包设置 ---
-\usepackage{amsmath}         % 用于高级数学公式
-\usepackage{amsfonts}        % 用于数学字体
-\usepackage{amssymb}         % 用于数学符号
-\usepackage{ctex}            % 中文支持包
-\usepackage{geometry}        % 设置页面边距
-\geometry{a4paper, left=2.5cm, right=2.5cm, top=2.5cm, bottom=2.5cm}
+% --- 导入所需宏包 ---
+\usepackage[a4paper, vmargin=2.5cm, hmargin=2cm]{geometry}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage[svgnames]{xcolor}
+\usepackage[most]{tcolorbox}
+\usepackage{fancyhdr}
+\usepackage{lmodern} % 提供更多字体变体，包括粗斜体无衬线字体
+\usepackage{tikz}
+\usetikzlibrary{intersections, patterns, shadows, decorations.pathmorphing}
+\usepackage{fontawesome5} % 更新的图标包
+\usepackage{enumitem}
+\usepackage{mdframed}
+\usepackage{varwidth} % 用于varwidth环境
+\usepackage{background} % 用于添加水印
+\usepackage{setspace} % 用于调整行距
+\usepackage{float} % 用于控制浮动体位置
 
-% --- 文档信息 ---
-\title{物理题解析 (第19, 20题)}
-\author{胡华烁}
-\date{\today}
+% --- 修复页眉高度警告 ---
+\setlength{\headheight}{22pt}
+
+% --- 水印设置 ---
+\backgroundsetup{
+    scale=1,
+    color=black,
+    opacity=0.08,
+    angle=0,
+    position=current page.center,
+    vshift=0cm,
+    hshift=0cm,
+    contents={
+        \begin{tikzpicture}[remember picture, overlay]
+            % 中央大水印 - 30度倾斜
+            \node[rotate=30, text opacity=0.12, text=gray!40] at (0,0) 
+                {\fontsize{80}{96}\selectfont\sffamily\bfseries 雪履千山客};
+        \end{tikzpicture}
+    }
+}
+
+% --- 自定义优雅颜色定义 ---
+\definecolor{themeblue}{RGB}{52, 73, 94}%主题蓝
+\definecolor{elegantpurple}{RGB}{155, 89, 182}%优雅紫
+\definecolor{warmorange}{RGB}{230, 126, 34}%温暖橙
+\definecolor{forestgreen}{RGB}{39, 174, 96}%森林绿
+\definecolor{deepblue}{RGB}{41, 128, 185}%深邃蓝
+\definecolor{sunsityellow}{RGB}{241, 196, 15}%阳光黄
+\definecolor{lightgrayblue}{RGB}{236, 240, 241}%浅灰蓝
+\definecolor{softpink}{RGB}{250, 219, 216}%柔和粉
+\definecolor{crimsonred}{RGB}{220, 20, 60}%深红
+\definecolor{darkslategray}{RGB}{47, 79, 79}%深石板灰
+\definecolor{notegreen}{RGB}{39, 174, 96}%注意绿
+
+% --- 页面布局与页眉页脚设置 ---
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\color{crimsonred}\textit{\faBook\ High School Mathematics Handout }}
+\fancyhead[R]{\color{crimsonred}\textit{雪履千山客 \faUser}}
+\fancyfoot[C]{\color{crimsonred!70}\small\textbf{--\ \thepage\ --}}
+\renewcommand{\headrulewidth}{1pt}
+\renewcommand{\footrulewidth}{0pt}
+\renewcommand{\headrule}{\hbox to\headwidth{\color{crimsonred!30}\leaders\hrule height \headrulewidth\hfill}}
+
+% --- 自定义优美的文本框环境 ---
+
+% 主标题框 (斜体英文+中文，专业设计)
+\newtcolorbox{chaptertitle}[3][]{
+    enhanced,
+    colback=themeblue!8!white,
+    colframe=white,
+    boxrule=0pt,
+    arc=0pt,
+    outer arc=0pt,
+    width=0.90\textwidth,
+    fonttitle=\Huge\sffamily,
+    title={\makebox[1.8em][l]{\textcolor{themeblue}{#2}}\ \textbf{\textit{{#3}}}},
+    coltitle=themeblue,
+    center title,
+    toptitle=0pt,
+    bottomtitle=0pt,
+    before skip=0pt,
+    after skip=0pt,
+    overlay={%
+        \ifx\relax#1\relax\else
+        \node[anchor=south east, text=themeblue!60, font=\large\itshape\kaishu, inner sep=2pt] 
+            at ([xshift=-8mm,yshift=5mm]frame.south east) {\fcolorbox{white}{white!90}{\makebox[0pt][r]{#1}}};
+        \fi
+    }
+}
+
+% 习题框 (专业方正设计，左侧竖线，优化对齐)
+\newtcolorbox{examplebox}{
+    enhanced,
+    colback=forestgreen!5!white,
+    colframe=white,
+    boxrule=0pt,
+    arc=0pt,
+    outer arc=0pt,
+    fonttitle=\bfseries\sffamily,
+    title={\makebox[1.8em][l]{\textcolor{forestgreen}{\faEdit}}\ \textit{\textcolor{white}{Example}}},
+    coltitle=forestgreen!90!white,
+    colbacktitle=forestgreen!35!white,
+    attach boxed title to top left={yshift=-2mm, xshift=3mm},
+    boxed title style={arc=0pt, outer arc=0pt, frame hidden},
+    borderline west={1pt}{0pt}{forestgreen},
+    left=15pt, right=10pt, top=15pt, bottom=10pt,
+    before skip=20pt, after skip=15pt,
+    breakable
+}
+
+% 解析框 (专业方正设计，左侧竖线，优化对齐)
+\newtcolorbox{analysisbox}{
+    enhanced,
+    colback=elegantpurple!5!white,
+    colframe=white,
+    boxrule=0pt,
+    arc=0pt,
+    outer arc=0pt,
+    fonttitle=\bfseries\sffamily,
+    title={\makebox[1.8em][l]{\textcolor{elegantpurple}{\faLightbulb}}\ \textit{\textcolor{white}{Analysis}}},
+    coltitle=elegantpurple!90!white,
+    colbacktitle=elegantpurple!35!white,
+    attach boxed title to top left={yshift=-2mm, xshift=3mm},
+    boxed title style={arc=0pt, outer arc=0pt, frame hidden},
+    borderline west={1pt}{0pt}{elegantpurple},
+    left=15pt, right=10pt, top=15pt, bottom=10pt,
+    before skip=20pt, after skip=15pt,
+    breakable
+}
+
+% 拓展框 (专业方正设计，左侧竖线，优化对齐)
+\newtcolorbox{expandbox}{
+    enhanced,
+    colback=warmorange!8!white,
+    colframe=white,
+    boxrule=0pt,
+    arc=0pt,
+    outer arc=0pt,
+    fonttitle=\bfseries\sffamily,
+    title={\makebox[1.8em][l]{\textcolor{warmorange}{\faRocket}}\ \textit{\textcolor{white}{Extension}}},
+    coltitle=warmorange!90!white,
+    colbacktitle=warmorange!35!white,
+    attach boxed title to top left={yshift=-2mm, xshift=3mm},
+    boxed title style={arc=0pt, outer arc=0pt, frame hidden},
+    borderline west={1pt}{0pt}{warmorange},
+    left=15pt, right=10pt, top=15pt, bottom=10pt,
+    before skip=20pt, after skip=15pt,
+    breakable
+}
+
+% 定理框 (新增，优雅设计)
+\newtcolorbox{theorembox}[1]{
+    enhanced,
+    colback=deepblue!8!white,
+    colframe=white,
+    boxrule=0pt,
+    arc=0pt,
+    outer arc=0pt,
+    fonttitle=\bfseries\sffamily,
+    title={\makebox[1.8em][l]{\textcolor{deepblue}{\faGraduationCap}}\ \textit{\textcolor{white}{Theorem}} },
+    coltitle=deepblue!90!white,
+    colbacktitle=deepblue!35!white,
+    attach boxed title to top left={yshift=-2mm, xshift=3mm},
+    boxed title style={arc=0pt, outer arc=0pt, frame hidden},
+    borderline west={1pt}{0pt}{deepblue},
+    left=15pt, right=10pt, top=15pt, bottom=10pt,
+    before skip=20pt, after skip=15pt,
+    breakable
+}
+
+% 注意事项框 (新增，警示设计)
+\newtcolorbox{notebox}{
+    colback=white,
+    title={\makebox[1.8em][l]{\textcolor{crimsonred}{\faExclamationTriangle}}\ \textit{Note}},
+    colframe=white,
+    boxrule=0pt,
+    enhanced,
+    title style={left color=crimsonred!50,right color=white,middle color=white},
+    arc=0mm,
+    titlerule=0pt,
+    fonttitle=\bfseries\sffamily,
+    left=15pt, right=10pt, top=15pt, bottom=10pt,
+    before skip=20pt, after skip=15pt,
+    breakable
+}
+
+% 习题框 (新增，专业设计)
+\newtcolorbox{exercisebox}[1]{
+    enhanced,
+    title={\makebox[1.8em][l]{\textcolor{forestgreen}{\faClock}}\ \textit{Exercise} \quad {\textcolor{forestgreen}{\faClock}} #1},
+    colframe=forestgreen!50!black,
+    colback=forestgreen!10!white,
+    colbacktitle=forestgreen!5!yellow!10!white,
+    fonttitle=\bfseries\sffamily,
+    coltitle=forestgreen!50!black,
+    attach boxed title to top center={yshift=-0.25mm-\tcboxedtitleheight/2,yshifttext=2mm-\tcboxedtitleheight/2},
+    boxed title style={boxrule=0.5mm,
+        frame code={ \path[tcb fill frame] ([xshift=-4mm]frame.west)
+            -- (frame.north west) -- (frame.north east) -- ([xshift=4mm]frame.east)
+            -- (frame.south east) -- (frame.south west) -- cycle; },
+        interior code={ \path[tcb fill interior] ([xshift=-2mm]interior.west)
+            -- (interior.north west) -- (interior.north east)
+            -- ([xshift=2mm]interior.east) -- (interior.south east) -- (interior.south west)
+            -- cycle;} },
+    left=15pt, right=10pt, top=15pt, bottom=10pt,
+    before skip=20pt, after skip=15pt,
+    breakable
+}
+
+%公式框 (新增，数学公式优化设计)
+\newtcolorbox{formulabox}{
+     enhanced,
+    skin=enhancedlast jigsaw,
+    attach boxed title to top left={xshift=-4mm,yshift=-0.5mm},
+    fonttitle=\bfseries\sffamily,
+    varwidth boxed title=0.7\linewidth,
+    colbacktitle=blue!45!white,
+    colframe=red!50!black,
+    interior style={top color=blue!10!white,bottom color=red!10!white},
+    boxed title style={empty,arc=0pt,outer arc=0pt,boxrule=0pt},
+    underlay boxed title={
+        \fill[blue!45!white] (title.north west) -- (title.north east)
+        -- +(\tcboxedtitleheight-1mm,-\tcboxedtitleheight+1mm)
+        -- ([xshift=4mm,yshift=0.5mm]frame.north east) -- +(0mm,-1mm)
+        -- (title.south west) -- cycle;
+        \fill[blue!45!white!50!black] ([yshift=-0.5mm]frame.north west)
+        -- +(-0.4,0) -- +(0,-0.3) -- cycle;
+        \fill[blue!45!white!50!black] ([yshift=-0.5mm]frame.north east)
+        -- +(0,-0.3) -- +(0.4,0) -- cycle; 
+    },
+    title={\makebox[1.8em][l]{\textcolor{warmorange}{\faRocket}}\ \textit{\textcolor{white}{Formula}}},
+    left=15pt, right=10pt, top=15pt, bottom=10pt,
+    before skip=20pt, after skip=15pt,
+    breakable,
+}
+
+%总结框
+\newtcolorbox{summarybox}{
+    colback=Teal!30!white,
+    enhanced,
+    title={\makebox[1.8em][l]{\textcolor{pink!90!white}{\faCodepen}}\ \textit{Summary}},
+    attach boxed title to top left={xshift=-4mm},
+    fonttitle=\bfseries\sffamily,
+    toprule=0pt,
+    bottomrule=0pt,
+    rightrule=0pt,
+    leftrule=3pt,
+    arc=0mm,
+    skin=enhancedlast jigsaw,
+    sharp corners,
+    colframe=Teal!90!white,
+    colbacktitle=Teal!90!white,
+    boxed title style={
+        frame code={
+            \fill[Teal!90!white](frame.south west)--(frame.north west)--(frame.north east)--([xshift=3mm]frame.east)--(frame.south east)--cycle;
+            \draw[line width=1mm,Teal!90!white]([xshift=2mm]frame.north east)--([xshift=5mm]frame.east)--([xshift=2mm]frame.south east);
+            \draw[line width=1mm,Teal!90!white]([xshift=5mm]frame.north east)--([xshift=8mm]frame.east)--([xshift=5mm]frame.south east);
+            \fill[green!40](frame.south west)--+(4mm,-2mm)--+(4mm,2mm)--cycle;
+        }
+    },
+    left=15pt, right=10pt, top=15pt, bottom=10pt,
+    before skip=20pt, after skip=15pt,
+    breakable
+}
+
+
+
+
+% --- 数学公式和排版优化 ---
+\renewcommand{\arraystretch}{1.4}
+\setlength{\jot}{8pt}
+
+% 自定义数学命令
+\newcommand{\highlight}[1]{\colorbox{sunsityellow!20}{\ensuremath{#1}}}
+\newcommand{\result}[1]{\tcbhighmath[colback=deepblue!15, colframe=deepblue, arc=3pt]{#1}}
+\newcommand{\important}[1]{\textcolor{crimsonred}{\textbf{#1}}}
 
 % --- 文档开始 ---
 \begin{document}
+\thispagestyle{fancy}
 
-\maketitle
-\tableofcontents
+% 优美的章节标题 (主标题斜体英文+中文)
+\begin{center}
+    \begin{chaptertitle}[复数专题]{\faBookOpen}{千寻蹊径}
+    \end{chaptertitle}
+\end{center}
+
+
+\begin{examplebox}
+已知椭圆 $\Gamma: \dfrac{x^2}{a^2} + \dfrac{y^2}{b^2} = 1 \quad (a>b>0)$ 的左右焦点分别为 $F_1, F_2$。
+椭圆 $\Gamma$ 在点 $P$ 处的切线为 $l$，$Q \in l$，且满足直线 $QF_1$ 与切线 $l$ 的夹角为 $\theta \left(0 < \theta < \dfrac{\pi}{2}\right)$，
+则点 $Q$ 在以 $C(0, \pm c\cot\theta)$ 为圆心，$\dfrac{a}{\sin\theta}$ 为半径的圆上。
+\end{examplebox}
+
+\begin{analysisbox}
+
+我们在复数平面中研究该问题。设椭圆中心为原点，焦点为 $f_1 = -c, f_2 = c$，动点 $Q$ 为复数 $q$。
+
+利用椭圆的反射性质，焦点 $F_1$ 关于切线 $l$ 的对称点 $F_1'$ (复数为 $f_1'$) 满足：
+\begin{equation}
+    |f_1' - c| = 2a \label{eq:1}
+\end{equation}
+
+点 $Q$ 在切线 $l$ 上，而 $l$ 是 $F_1F_1'$ 的垂直平分线，因此 $|q - f_1| = |q - f_1'|$。又因直线 $QF_1$ 与切线 $l$ 的夹角为 $\theta$，可知 $\angle F_1QF_1' = 2\theta$。由此得到：
+\[
+    \frac{f_1' - q}{f_1 - q} = e^{\pm i 2\theta}
+\]
+解出 $f_1'$:
+\begin{equation}
+    f_1' = q + (f_1 - q)e^{\pm i 2\theta} \label{eq:2}
+\end{equation}
+
+将方程 \eqref{eq:2} 代入方程 \eqref{eq:1}，并令 $f_1 = -c$。通过一系列代数和三角恒等式变换，可得：
+\begin{align*}
+    | (q + (-c - q)e^{\pm i 2\theta}) - c | &= 2a \\
+    | q(1 - e^{\pm i 2\theta}) - c(1 + e^{\pm i 2\theta}) | &= 2a \\
+    | q \cdot e^{\pm i\theta}(\mp 2i \sin\theta) - c \cdot e^{\pm i\theta}(2 \cos\theta) | &= 2a \\
+    | q(\mp 2i \sin\theta) - 2c \cos\theta | &= 2a \\
+    2\sin\theta \left| q + \frac{c \cos\theta}{\pm i \sin\theta} \right| &= 2a \\
+    2\sin\theta \left| q \mp i c \cot\theta \right| &= 2a
+\end{align*}
+最终得到点 $Q$ 的轨迹方程：
+\[
+    |q - (\pm i c \cot\theta)| = \frac{a}{\sin\theta}
+\]
+
+此方程为圆的标准形式 $|z - z_0| = R$，其中圆心 $z_0 = \pm i c \cot\theta$ (即 $C(0, \pm c \cot\theta)$)，半径 $R = \dfrac{a}{\sin\theta}$
+
+\end{analysisbox}
+
+\begin{notebox}
+\important{解题要点：}
+\begin{itemize}[leftmargin=15pt, itemsep=5pt]
+    \item 利用直角三角形的几何意义，将原式中各项arcsin统一转换为更便于运算的arctan形式
+    \item 运用“复数相乘，辐角相加”的核心原理，把复杂的角度求和问题转化为复数乘法运算
+    \item 根据实部与虚部符号判断其所在象限，并对主值进行修正，从而确定最终的角度和
+\end{itemize}
+\end{notebox}
+
+\begin{figure}[H]
+\centering
+\centering
+\begin{tikzpicture}[scale=0.8, >=stealth]
+    % 定义椭圆参数
+    \def\a{2.83} % sqrt(8)
+    \def\b{1.41} % sqrt(2)
+    
+    % 绘制坐标轴
+    \draw[->] (-4,0) -- (4,0) node[right] {$x$};
+    \draw[->] (0,-2.5) -- (0,2.5) node[above] {$y$};
+    
+    % 绘制椭圆
+    \draw[thick, blue] (0,0) ellipse ({\a} and {\b});
+    
+    % 绘制对称轴
+    \draw[dashed, red, thick] (-3,-6) -- (2,4) node[above] {$y = 2x$};
+    
+    % 绘制直线l
+    \draw[green, thick] (-2,2) -- (4,-1) node[right] {$l: y = -\frac{1}{2}x + 1$};
+    
+    % 标记交点
+    \coordinate (A) at (-1.6, 1.8);
+    \coordinate (B) at (2.4, -0.2);
+    \fill[green] (A) circle (2pt) node[above left] {$A$};
+    \fill[green] (B) circle (2pt) node[below right] {$B$};
+    
+    % 标记中点
+    \coordinate (M) at (0.4, 0.8);
+    \fill[red] (M) circle (2pt) node[above] {$M$};
+    
+    % 标记原点和关键点
+    \fill (0,0) circle (1.5pt) node[below left] {$O$};
+    \fill (2,1) circle (2pt) node[above right] {$(2,1)$};
+    
+    % 添加网格
+    \draw[gray!30, very thin] (-4,-2) grid (4,2);
+    
+\end{tikzpicture}
+\caption{\textcolor{themeblue}{\textbf{\textit{Figure 4.1 - Ellipse and Symmetric Line} \quad 图 4.1 - 椭圆与对称直线}}}
+\label{fig:ellipse}
+\end{figure}
+
+\begin{expandbox}
+\textbf{拓展思考：}
+
+\begin{enumerate}[leftmargin=15pt, itemsep=8pt]
+    \item \textbf{一般化问题：} 若椭圆上两点关于直线 $y = kx + c$ 对称，如何求解？
+    
+    \item \textbf{双曲线情形：} 类似问题在双曲线中如何处理？
+    
+    \item \textbf{参数方程法：} 利用椭圆的参数方程 $\begin{cases} x = a\cos\theta \\ y = b\sin\theta \end{cases}$ 求解对称问题
+\end{enumerate}
+
+\textbf{相关定理：}
+\begin{itemize}[leftmargin=15pt, itemsep=5pt]
+    \item 焦点弦性质：过焦点的弦具有特殊的调和性质
+    \item 切线方程：椭圆上一点的切线方程为 $\frac{x_0 x}{a^2} + \frac{y_0 y}{b^2} = 1$
+\end{itemize}
+\end{expandbox}
+
 \newpage
 
-\section*{第六大题、带电粒子在电场中的运动}
+% 第二个主题
+\begin{center}
+    \begin{chaptertitle}{\faInfinity}{Infinite Series 5.2}
+    \end{chaptertitle}
+\end{center}
 
-\subsection*{19. (共7分)}
+\begin{summarybox}{5.1}
+设数列 $\{a_n\}$ 满足 $a_1 = 1$，$a_{n+1} = \frac{2a_n}{a_n + 2}$ $(n \geq 1)$。
 
-\subsubsection*{(1) (2分) 试证明电场强度的单位 1 N/C = 1 V/m。}
-\textbf{证明:} \\
-根据电势差的定义，在匀强电场中，沿电场线方向两点间的电势差 $U$、电场强度 $E$ 和距离 $d$ 的关系为：
-\[ U = E \cdot d \]
-由此可得，电场强度的单位可表示为 \textbf{伏特/米 (V/m)}。
+(1) 证明：$\frac{1}{a_n}$ 是等差数列；
 
-\vspace{1em}
-另外，根据电场强度的定义，电场中某点的场强 $E$ 等于置于该点的电荷 $q$ 所受的电场力 $F$ 与该电荷电量的比值：
-\[ E = \frac{F}{q} \]
-由此可得，电场强度的单位也可表示为 \textbf{牛顿/库仑 (N/C)}。
+(2) 求数列 $\{a_n\}$ 的通项公式；
 
-\vspace{1em}
-我们可以从基本单位的定义来推导证明这两个单位是等价的：
-\begin{itemize}
-    \item 1 伏特 (V) 的定义是 "移动1库仑 (C) 电荷做1焦耳 (J) 的功"，即 $1 \text{ V} = 1 \frac{\text{J}}{\text{C}}$。
-    \item 1 焦耳 (J) 的定义是 "用1牛顿 (N) 的力使物体在力的方向上移动1米 (m)"，即 $1 \text{ J} = 1 \text{ N} \cdot \text{m}$。
+(3) 求 $\sum_{n=1}^{\infty} a_n$ 的值。
+\end{summarybox}
+
+\begin{formulabox}
+\textbf{\color{elegantpurple}\textit{Analysis Method} \quad 分析方法：}
+
+这是典型的递推数列问题，关键在于找到合适的变换使得新数列具有简单的递推关系。
+
+\textbf{第一问：} 对递推关系取倒数：
+$$\frac{1}{a_{n+1}} = \frac{a_n + 2}{2a_n} = \frac{1}{2} + \frac{1}{a_n}$$
+
+设 $b_n = \frac{1}{a_n}$，则 $b_{n+1} = b_n + \frac{1}{2}$，$b_1 = 1$。
+
+显然 $\{b_n\}$ 是首项为 $1$，公差为 $\frac{1}{2}$ 的等差数列。
+
+\textbf{第二问：} 
+$$b_n = 1 + (n-1) \cdot \frac{1}{2} = \frac{n+1}{2}$$
+
+因此：
+
+\textbf{第三问：} 
+$$\sum_{n=1}^{\infty} a_n = \sum_{n=1}^{\infty} \frac{2}{n+1} = 2\sum_{n=2}^{\infty} \frac{1}{n}$$
+
+此级数发散（调和级数）。
+\end{formulabox}
+
+\begin{exercisebox}
+\important{级数收敛性判断：}
+\begin{itemize}[leftmargin=15pt, itemsep=5pt]
+    \item 调和级数 $\sum_{n=1}^{\infty} \frac{1}{n}$ 发散
+    \item $p$-级数 $\sum_{n=1}^{\infty} \frac{1}{n^p}$ 当 $p > 1$ 时收敛，$p \leq 1$ 时发散
+    \item 比值判别法和根值判别法的应用条件
 \end{itemize}
-将以上定义代入 V/m 中进行推导：
-\[ 1 \frac{\text{V}}{\text{m}} = \frac{1 \frac{\text{J}}{\text{C}}}{1 \text{m}} = \frac{1 \frac{\text{N} \cdot \text{m}}{\text{C}}}{1 \text{m}} = 1 \frac{\text{N}}{\text{C}} \]
-\hfill \textbf{证毕。}
+\end{exercisebox}
 
-\subsubsection*{(2) (2分) 电场强度和电势分别是}
-\begin{itemize}
-    \item \textbf{电场强度}：用来描述电场的力的性质，它既有大小，也有方向（规定为正电荷在该点所受电场力的方向）。因此，电场强度是\textbf{矢量}。
-    \item \textbf{电势}：用来描述电场的能的性质，是电场中某一点相对零电势点的电势差，只有大小，没有方向。因此，电势是\textbf{标量}。
-\end{itemize}
-\textbf{答案： C. 矢量 标量}
-
-\subsubsection*{(3) (3分) 该平行板电容器，带电荷量为Q时两极板电势差为U，若带电荷量变为2Q，则}
-此题的隐含条件是电容器充电后与电源断开，成为一个孤立的带电系统。
-\begin{itemize}
-    \item \textbf{电容 (C)}：平行板电容器的电容由其自身的物理结构决定，与电荷量 $Q$ 和电势差 $U$ 无关。只要电容器的物理结构不变，其电容 $C$ 就保持不变。
-    \item \textbf{电荷量 (Q) 与电势差 (U) 的关系}：三者满足关系式 $Q = CU$，可推得 $U = \frac{Q}{C}$。
-\end{itemize}
-当电荷量变为 $Q' = 2Q$ 时，由于电容 $C$ 不变，新的电势差 $U'$ 为：
-\[ U' = \frac{Q'}{C} = \frac{2Q}{C} = 2 \left(\frac{Q}{C}\right) = 2U \]
-\textbf{答案： D. 电容不变，两极板电势差变为原来的2倍}
-
-\subsection*{20. (共10分)}
-
-\subsubsection*{(1) (2分) 该粒子在电场中所做的运动}
-\begin{itemize}
-    \item \textbf{受力分析}：粒子在电场中仅受到恒定的电场力 $\vec{F} = q\vec{E}$，该力的方向与粒子的初速度 $v_0$ 方向垂直。
-    \item \textbf{运动分析}：由于粒子受到一个大小和方向都不变的恒定合外力，且该力与初速度方向垂直，其运动轨迹为一条抛物线。这种运动是\textbf{匀加速曲线运动}。
-\end{itemize}
-\textbf{答案： B. 匀加速曲线运动}
-
-\subsubsection*{(2) (计算，4分) 该粒子在电场中运动的时间}
-将运动分解为水平（x轴）和竖直（y轴）方向。
-\begin{itemize}
-    \item 水平方向：匀速直线运动，$v_x = v_0$。
-    \item 竖直方向：初速度为0的匀加速直线运动，加速度为 $a_y = \frac{qE}{m}$。在时刻 $t$ 的竖直分速度为 $v_y = a_y t = \frac{qE}{m}t$。
-\end{itemize}
-粒子射出时，速度方向与初速度方向成 $30^\circ$ 角。由速度合成的几何关系可知：
-\begin{align*}
-\tan(30^\circ) &= \frac{v_y}{v_x} = \frac{\frac{qE}{m}t}{v_0} \\
-\frac{1}{\sqrt{3}} &= \frac{qEt}{mv_0} \\
-\implies t &= \frac{mv_0}{\sqrt{3}qE}
-\end{align*}
-\textbf{答案：} 粒子在电场中运动的时间为 $\displaystyle \frac{mv_0}{\sqrt{3}qE}$。
-
-\subsubsection*{(3) (计算，4分) 粒子在这一过程中电势能的变化量}
-电势能的变化量 $\Delta U_e$ 等于电场力做功 $W_e$ 的负值，而电场力做的功又等于粒子动能的变化量 $\Delta K$。所以 $\Delta U_e = -W_e = -\Delta K$。
-\begin{itemize}
-    \item \textbf{初动能 $K_i$}：
-    \[ K_i = \frac{1}{2}mv_0^2 \]
-    \item \textbf{末动能 $K_f$}：末速度的大小 $v_f$ 可由分速度求得：
-    \[ v_y = v_x \tan(30^\circ) = \frac{v_0}{\sqrt{3}} \]
-    \[ v_f^2 = v_x^2 + v_y^2 = v_0^2 + \left(\frac{v_0}{\sqrt{3}}\right)^2 = v_0^2 + \frac{1}{3}v_0^2 = \frac{4}{3}v_0^2 \]
-    因此末动能为：
-    \[ K_f = \frac{1}{2}mv_f^2 = \frac{1}{2}m\left(\frac{4}{3}v_0^2\right) = \frac{2}{3}mv_0^2 \]
-    \item \textbf{动能变化量 $\Delta K$}：
-    \[ \Delta K = K_f - K_i = \frac{2}{3}mv_0^2 - \frac{1}{2}mv_0^2 = \left(\frac{4}{6} - \frac{3}{6}\right)mv_0^2 = \frac{1}{6}mv_0^2 \]
-    \item \textbf{电势能变化量 $\Delta U_e$}：
-    \[ \Delta U_e = -\Delta K = -\frac{1}{6}mv_0^2 \]
-\end{itemize}
-\textbf{答案：} 粒子在此过程中电势能的变化量为 $\displaystyle -\frac{1}{6}mv_0^2$。
+\setcounter{page}{150}
 
 \end{document}

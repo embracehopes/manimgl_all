@@ -24,4 +24,9 @@ last_rotation = getattr(mob, '_last_rotation', 0)##给last_rotation一个初始�
 ########################
 transform（）不能3D变换成2D
 GlowDot的参数有glow_factor和radius，glow_factor控制发光的强度，radius控制点的大小
-类似球体变大的动画用become方法，避免了重复创建对象，和无限制变大，，创建初始的新的球体副本作为基准，避免累积缩放问题~
+类似球体变大的动画用become方法，避免了重复创建对象，和无限制变大，，创建初始的新的球体副本作为基准，避免累积缩放问题
+t_range参数可以设置参数曲线的范围，t_min和t_max是旧版本的参数
+t_range=(0, TAU, 0.01)可以设置更细的分辨率，0.01是步长,必须是3个参数
+arametricCurve，ParametricSurface可以设置渐变色，跟其他的一样,line,tracepath不可以
+interpolate_color，函数可以用来在两个颜色之间插值，返回一个新的颜色
+# 例如：interpolate_color(BLUE, ORANGE, 0.5)

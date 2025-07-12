@@ -1,0 +1,133 @@
+from re import I
+from manim.mobject.geometry import arc
+from manimlib import *
+import numpy as np
+
+class Replicate_1(Scene):
+    def construct(self):
+        #画一个箭头
+        arrow = Arrow(start=ORIGIN, end=UP*0.6, buff=0,tip_width_ratio=4,thickness=5 )
+        arrow.set_color(BLUE)
+        arrow.set_stroke(width=5)
+        arrow.set_fill(color=BLUE, opacity=1)
+        arrow.shift(DOWN*2.3+LEFT*2)
+        self.add(arrow)
+        Tex_all=[]
+        rac_all= []
+#  中心位置: (6.96, -0.14, 0.00)
+#  视野高度: 9.95
+        self.camera.frame.set_height(11)
+        self.camera.frame.move_to(np.array([6.96, -0.14, 0.00]))
+        #  中心位置: (6.96, -0.14, 0.00)
+        # 视野高度: 9.95
+
+
+        for i in range(8):
+            if i<4:
+                a=i+1
+                Text = Tex(f"{a}", font_size=65)
+                rac = RoundedRectangle(
+                    width=1.5, height=1.5, 
+                    corner_radius=0.2, 
+                    color=BLUE, fill_color=BLUE, fill_opacity=0,
+                    stroke_width=5, stroke_color=GREY
+                )
+                Text.move_to(2*RIGHT*i)
+                rac.move_to(2*RIGHT*i)  # 添加矩形位置
+                Tex_all.append(Text)
+                rac_all.append(rac)
+            else:
+                a=i+1
+                Text = Tex(f"{a}", font_size=65)
+                rac = RoundedRectangle(
+                    width=1.5, height=1.5, 
+                    corner_radius=0.2, 
+                    color=MAROON, fill_color=BLUE, fill_opacity=0,
+                    stroke_width=5, stroke_color="#cdaaa4"
+                )
+                Text.move_to(2*RIGHT*i)
+                rac.move_to(2*RIGHT*i)  # 添加矩形位置
+                Tex_all.append(Text)
+                rac_all.append(rac)
+        self.add(*Tex_all)
+        self.add(*rac_all)
+        #1
+        self.play(
+            arrow.animate.shift(2*RIGHT),
+            rac_all[0].animate.set_stroke(color=BLUE).scale(1.4),
+            Tex_all[0].animate.scale(1.4),
+
+            run_time=1,
+            rate_func=smooth
+        )
+        self.play(
+            Tex_all[0].animate.scale(1/1.4),
+            rac_all[0].animate.scale(1/1.4),
+            run_time=0.5,
+            rate_func=smooth
+        )
+
+        #2
+        self.play(
+            arrow.animate.shift(2*RIGHT),
+            rac_all[1].animate.set_stroke(color=BLUE).scale(1.4),
+            Tex_all[1].animate.scale(1.4),
+            run_time=1,
+            rate_func=smooth
+        )
+        self.play(
+            Tex_all[1].animate.scale(1/1.4),
+            rac_all[1].animate.scale(1/1.4),
+            run_time=0.5,
+            rate_func=smooth
+        )
+        #3
+        self.play(
+            arrow.animate.shift(2*RIGHT),
+            rac_all[2].animate.set_stroke(color=BLUE).scale(1.4),
+            Tex_all[2].animate.scale(1.4),
+            run_time=1,
+            rate_func=smooth
+        )
+        self.play(
+            Tex_all[2].animate.scale(1/1.4),
+            rac_all[2].animate.scale(1/1.4),
+            run_time=0.5,
+            rate_func=smooth
+        )
+        #4
+        self.play(
+            arrow.animate.shift(2*RIGHT),
+            rac_all[3].animate.set_stroke(color=BLUE).scale(1.4),
+            Tex_all[3].animate.scale(1.4),
+            run_time=1,
+            rate_func=smooth
+        )
+        self.play(
+            Tex_all[3].animate.scale(1/1.4),
+            rac_all[3].animate.scale(1/1.4),
+            run_time=0.5,
+            rate_func=smooth
+        )
+        #5
+        self.play(
+            arrow.animate.shift(2*RIGHT),
+            rac_all[4].animate.set_stroke(color=RED).scale(1.4),
+            Tex_all[4].animate.scale(1.4),
+            run_time=1,
+            rate_func=smooth
+        )
+        self.play(
+            Tex_all[4].animate.scale(1/1.4),
+            rac_all[4].animate.scale(1/1.4),
+            run_time=0.5,
+            rate_func=smooth
+        )
+        self.embed()
+
+
+
+
+if __name__ == "__main__":
+    import os
+    os.system("manimgl c.py Replicate_1 ")  # 使用 -pql 参数以低质量预

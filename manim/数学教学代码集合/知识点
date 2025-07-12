@@ -98,3 +98,5 @@ bounded_graph: 指定下边界曲线（若不指定则默认为x轴）
             self.play(FadeTransform(info_text, light_text))
             self.play(light.animate.move_to(3 * IN), run_time=3)
             self.play(light.animate.shift(10 * OUT), run_time=3)##光源移动
+self.add_fixed_orientation_mobjects(dot)##可以用来固定文字朝向，始终对准相机
+manim中可以使用-qpl -s来看最后一帧加速制作过程
